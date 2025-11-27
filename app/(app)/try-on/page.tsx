@@ -1,3 +1,4 @@
+//comments
 "use client";
 
 import React, { useRef } from "react";
@@ -11,7 +12,7 @@ import { useTryOnStore } from "../../store/tryon";
 
 export default function TryOnPage() {
   const canvasRef = useRef<TryOnCanvasHandle | null>(null);
-
+   
   const {
     category,
     overlays,
