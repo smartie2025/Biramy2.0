@@ -37,7 +37,7 @@ export default function ProductGrid() {
           <div className="text-lg font-semibold">{c.label}</div>
           <div className="text-sm text-gray-500">{c.count}</div>
         </button>
->>>>>>> 022ef857510bd4ded404d4661bd1c35b1f9f494b
+
       ))}
     </div>
   );
