@@ -1,0 +1,91 @@
+"use client";
+//test line
+
+import React, { useRef, useState } from "react";
+import TryOnCanvas, { TryOnCanvasHandle } from "../../components/TryOnCanvas"; // <- relative path
+import { TRYON_OVERLAYS } from "../lib/asset-manifest";                      // <- relative path
+import { Camera, CameraOff, RefreshCcw } from "lucide-react";
+
+export default function TryOnPage() {
+  const canvasRef = useRef<TryOnCanvasHandle | null>(null);
+
+  const [selectedId, setSelectedId] = useState<string | null>(TRYON_OVERLAYS[0]?.id ?? null);
+  const selected = TRYON_OVERLAYS.find((o) => o.id === selectedId) ?? null;
+
+  const [opacity, setOpacity] = useState(1);
+  const [scale, setScale] = useState(selected?.baseScale ?? 1);
+  const [rotation, setRotation] = useState(selected?.baseRotation ?? 0);
+  const [mirror, setMirror] = useState(true);
+
+  const onChangeItem = (id: string) => {
+    setSelectedId(id);
+    setTimeout(() => canvasRef.current?.resetOverlay(), 0);
+  };
+
+  return (
+    <div className="px-4 py-6 space-y-6">
+      <header className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight">BIRAMY Galaxy — Try-On</h1>
+        <div className="flex gap-2">
+          <button onClick={() => canvasRef.current?.startCamera()} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 bg-white text-black shadow hover:bg-white/90">
+            <Camera className="h-4 w-4" /> Start
+          </button>
+          <button onClick={() => canvasRef.current?.stopCamera()} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 bg-neutral-900 text-white shadow hover:bg-neutral-800">
+            <CameraOff className="h-4 w-4" /> Stop
+          </button>
+          <button
+            onClick={() => {
+              canvasRef.current?.resetOverlay();
+              setOpacity(1);
+              setScale(selected?.baseScale ?? 1);
+              setRotation(selected?.baseRotation ?? 0);
+            }}
+            className="inline-flex items-center gap-2 rounded-xl px-3 py-2 bg-indigo-600 text-white shadow hover:bg-indigo-500"
+          >
+            <RefreshCcw className="h-4 w-4" /> Reset
+          </button>
+        </div>
+      </header>
+
+      <TryOnCanvas
+        ref={canvasRef}
+        selected={selected}
+        mirror={mirror}
+        opacity={opacity}
+        controlledScale={scale}
+        controlledRotation={rotation}
+      />
+
+      <section className="grid md:grid-cols-2 gap-6">
+        <div className="rounded-2xl p-4 border border-white/10 bg-gradient-to-b from-zinc-900/60 to-black/60">
+          <h2 className="text-sm uppercase tracking-wider text-white/70 mb-3">Select Item</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {TRYON_OVERLAYS.map((o) => (
+              <button
+                key={o.id}
+                onClick={() => onChangeItem(o.id)}
+                className={`rounded-xl border px-3 py-2 text-left hover:bg-white/5 ${selectedId === o.id ? "border-indigo-400 bg-white/10" : "border-white/10"}`}
+              >
+                <div className="text-sm font-medium">{o.title}</div>
+                <div className="text-xs text-white/60">{o.category}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl p-4 border border-white/10 bg-gradient-to-b from-zinc-900/60 to-black/60">
+          <label className="block text-xs text-white/70 mb-1">Opacity: {opacity.toFixed(2)}</label>
+          <input type="range" min={0.1} max={1} step={0.01} value={opacity} onChange={(e) => setOpacity(parseFloat(e.target.value))} className="w-full mb-3" />
+          <label className="block text-xs text-white/70 mb-1">Scale: {scale.toFixed(2)}×</label>
+          <input type="range" min={0.25} max={3} step={0.01} value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} className="w-full mb-3" />
+          <label className="block text-xs text-white/70 mb-1">Rotation: {rotation.toFixed(0)}°</label>
+          <input type="range" min={-180} max={180} step={1} value={rotation} onChange={(e) => setRotation(parseFloat(e.target.value))} className="w-full mb-3" />
+          <div className="flex items-center gap-2">
+            <input id="mirror" type="checkbox" checked={mirror} onChange={(e) => setMirror(e.target.checked)} />
+            <label htmlFor="mirror" className="text-sm text-white/80">Mirror selfie view</label>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

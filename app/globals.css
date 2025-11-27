@@ -1,0 +1,38 @@
+/* === Tailwind setup === */
+@import "tailwindcss";
+
+
+/* === BIRAMY Galaxy Design Tokens === */
+:root {
+  color-scheme: light;
+  --bg: 240 7% 10%; /* deep space */
+  --surface: 240 5% 16%; /* panels/cards */
+  --text: 210 40% 96%; /* high-contrast text */
+  --muted: 240 5% 26%;
+  --primary: 248 93% 63%; /* indigo nebula */
+  --accent: 210 100% 66%; /* electric blue */
+  --gold: 46 92% 70%; /* starlight gold */
+  --ring: 249 95% 63%;
+}
+
+html,
+body,
+#__next {
+  height: 100%;
+}
+/* 
+body {
+  @apply antialiased;
+  background-color: white;
+  color: hsl(210 10% 15%);
+}
+ */
+
+/* body { background: #ffffcc !important; } */
+
+/* Handy utility shims you can use anywhere */
+.gx-card   { background-color: hsl(var(--surface)); border: 1px solid hsl(var(--muted)); }
+.gx-ring   { box-shadow: 0 0 0 1px hsl(var(--ring)); }
+.gx-primary{ background-color: hsl(var(--primary)); color: white; }
+.gx-accent { background-color: hsl(var(--accent)); color: black; }
+.gx-gold   { color: hsl(var(--gold)); }

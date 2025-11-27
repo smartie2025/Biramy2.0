@@ -1,0 +1,53 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/app/globals.css",
+    "baseColor": "zinc",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "registries": {},
+  "theme": {
+    "colors": {
+      "background": "0 0% 100%",      
+      "foreground": "0 0% 7%",        
+
+      "card": "0 0% 100%",
+      "card-foreground": "0 0% 7%",
+
+      "popover": "0 0% 100%",
+      "popover-foreground": "0 0% 7%",
+
+      "primary": "350 35% 60%",       
+      "primary-foreground": "0 0% 100%",
+
+      "secondary": "0 0% 96%",
+      "secondary-foreground": "0 0% 7%",
+
+      "muted": "0 0% 96%",
+      "muted-foreground": "0 0% 45%",
+
+      "accent": "330 70% 85%",        
+      "accent-foreground": "0 0% 7%",
+
+      "destructive": "0 84% 60%",
+      "destructive-foreground": "0 0% 98%",
+
+      "border": "0 0% 90%",
+      "input": "0 0% 90%",
+      "ring": "350 35% 60%"          
+    }
+  }
+}

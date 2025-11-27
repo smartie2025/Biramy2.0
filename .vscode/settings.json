@@ -1,0 +1,26 @@
+{
+  "appService.zipIgnorePattern": [
+    "node_modules/{,/**}",
+    ".vscode/{,/**}"
+  ],
+  "git.enableSmartCommit": true,
+  "git.postCommitCommand": "push",
+  "git.confirmSync": false,
+  "git.autofetch": true,
+
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html",
+    "javascript": "javascript",
+    "typescript": "typescript",
+    "typescriptreact": "typescriptreact",
+    "javascriptreact": "javascriptreact"
+  },
+  "tailwindCSS.experimental.configFile": "tailwind.config.js",
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "css.validate": false,
+  "scss.validate": false,
+  "less.validate": false,
+  "tailwindCSS.emmetCompletions": true
+}
