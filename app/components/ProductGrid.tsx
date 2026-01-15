@@ -1,35 +1,3 @@
-<<<<<<< HEAD
-// =========================================================
-// (Optional) File: app/components/ProductGrid.tsx — demo hook-up
-// =========================================================
-"use client";
-import React from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { OVERLAYS } from "@/app/lib/asset-manifest";
-import { useTryOnStore } from "@/app/store/tryon";
-
-export default function ProductGrid() {
-  const setOverlay = useTryOnStore((s) => s.setOverlay);
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {OVERLAYS.map((o) => (
-        <div key={o.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-          <div className="relative w-full aspect-square">
-            <Image src={o.src} alt={o.name} fill sizes="300px" className="object-contain p-4" />
-          </div>
-          <div className="p-3 text-white/90 text-sm flex items-center justify-between">
-            <span>{o.name}</span>
-            <Link
-              href="/tryon"
-              onClick={() => setOverlay(o.id, { scale: o.defaultScale })}
-              className="px-2 py-1 rounded-lg bg-white text-black text-xs"
-            >
-              Try on
-            </Link>
-          </div>
-        </div>
-=======
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -69,7 +37,6 @@ export default function ProductGrid() {
           <div className="text-lg font-semibold">{c.label}</div>
           <div className="text-sm text-gray-500">{c.count}</div>
         </button>
->>>>>>> 022ef857510bd4ded404d4661bd1c35b1f9f494b
       ))}
     </div>
   );

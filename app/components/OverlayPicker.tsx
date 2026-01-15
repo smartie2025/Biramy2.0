@@ -1,121 +1,149 @@
 "use client";
-//this is a test
-import React, { useMemo } from "react";
-import { useTryOnStore, type Category } from "../store/tryon";
-import { OVERLAYS } from "../lib/asset-manifest";
 
-// Overlay inferred from manifest, with typed category
-type TryOnOverlay = (typeof OVERLAYS)[number] & { category: Category };
+import React, { useEffect } from "react";
+import {
+  useTryOnStore,
+  Category,
+  OverlayItem,
+} from "@/app/store/tryon";
+
+// Categories we support (same as in the store)
+const CATEGORIES: Category[] = [
+  "rings",
+  "necklaces",
+  "earrings",
+  "bracelets",
+  "sunglasses",
+  "glasses",
+  "hats",
+  "scarves",
+  "watches",
+];
+
+// Nice labels for the buttons
+const CATEGORY_LABELS: Record<Category, string> = {
+  rings: "Rings",
+  necklaces: "Necklaces",
+  earrings: "Earrings",
+  bracelets: "Bracelets",
+  sunglasses: "Sunglasses",
+  glasses: "Glasses",
+  hats: "Hats",
+  scarves: "Scarves",
+  watches: "Watches",
+};
+
+// Optional fallback overlays (so you see *something* even
+// if the store overlays are still empty)
+const MOCK_OVERLAYS: Partial<Record<Category, OverlayItem[]>> = {
+  glasses: [
+    {
+      id: "glasses-1",
+      name: "Classic Glasses",
+      src: "/overlays/glasses/glasses-1.png",
+    },
+  ],
+  sunglasses: [
+    {
+      id: "sunglass-1",
+      name: "Aviator Shades",
+      src: "/overlays/sunglasses/aviator-1.png",
+    },
+  ],
+  rings: [
+    {
+      id: "ring-1",
+      name: "Diamond Ring",
+      src: "/overlays/rings/ring-1.png",
+    },
+  ],
+  necklaces: [
+    {
+      id: "necklace-1",
+      name: "Pearl Necklace",
+      src: "/overlays/necklaces/necklace-1.png",
+    },
+  ],
+};
 
 export default function OverlayPicker() {
-  const {
-    category,
-    setCategory,
-    layers,
-    activeLayerId,
-    addLayer,
-    setActiveLayer,
-    updateLayer,
-  } = useTryOnStore();
+  const category = useTryOnStore((s) => s.category);
+  const setCategory = useTryOnStore((s) => s.setCategory);
+  const overlays = useTryOnStore((s) => s.overlays);
+  const addLayer = useTryOnStore((s) => s.addLayer);
 
-  // Unique categories from manifest
-  const categories: Category[] = useMemo(
-    () => Array.from(new Set(OVERLAYS.map((o) => o.category as Category))),
-    []
-  );
-
-  const activeCategory: Category =
-    category ?? categories[0] ?? "glasses";
-
-  // Items for selected category
-  const items: TryOnOverlay[] = useMemo(
-    () =>
-      OVERLAYS.filter(
-        (o) => (o as TryOnOverlay).category === activeCategory
-      ) as TryOnOverlay[],
-    [activeCategory]
-  );
-
-  // pick overlay
-  const pick = (o: TryOnOverlay) => {
-    const existing = layers.find((l) => l.id === o.id);
-
-    if (!existing) {
-      addLayer(o.id);
-
-      const anyOverlay = o as any;
-      const defaultScale =
-        anyOverlay.defaultScale !== undefined
-          ? anyOverlay.defaultScale
-          : 1;
-
-      updateLayer(o.id, { scale: defaultScale });
+  // On first load, default to "glasses" if nothing is selected
+  useEffect(() => {
+    if (!category) {
+      setCategory("glasses");
     }
+  }, [category, setCategory]);
 
-    setActiveLayer(o.id);
-  };
+  // Until useEffect runs, we might still have no category
+  if (!category) {
+    return (
+      <div className="text-xs text-slate-500">
+        Initialising categories…
+      </div>
+    );
+  }
+
+  // Prefer real overlays from the store; otherwise fall back to MOCK_OVERLAYS
+  const catalogItems = overlays[category] ?? [];
+  const items: OverlayItem[] =
+    catalogItems.length > 0
+      ? catalogItems
+      : MOCK_OVERLAYS[category] ?? [];
 
   return (
-    <div className="space-y-3">
-
-      {/* Category buttons */}
-      <div className="flex gap-2 flex-wrap">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setCategory(cat)}
-            className={`px-3 py-1 rounded-full text-sm transition ${
-              cat === activeCategory
-                ? "bg-white text-slate-900"
-                : "bg-slate-800 text-slate-100"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Item cards */}
-      <div className="grid grid-cols-1 gap-3">
-        {items.map((o) => {
-          const isActive = activeLayerId === o.id;
-
+    <div className="space-y-4">
+      {/* Category Selector */}
+      <div className="flex flex-wrap gap-2">
+        {CATEGORIES.map((c) => {
+          const isActive = c === category;
           return (
             <button
-              key={o.id}
-              onClick={() => pick(o)}
-              className={`flex flex-col items-start rounded-2xl border p-3 text-left transition ${
+              key={c}
+              type="button"
+              onClick={() => setCategory(c)}
+              className={[
+                "rounded-full border px-3 py-1 text-[11px] transition",
                 isActive
-                  ? "border-blue-500 bg-slate-900"
-                  : "border-slate-700 bg-slate-900/60 hover:border-slate-500"
-              }`}
+                  ? "border-blue-400 bg-blue-500/10 text-blue-100"
+                  : "border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700",
+              ].join(" ")}
             >
-              <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-slate-900 mb-2 flex items-center justify-center">
-                {o.thumb ? (
-                  <img
-                    src={o.thumb}
-                    alt={o.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src={o.src}
-                    alt={o.name}
-                    className="w-full h-full object-contain"
-                  />
-                )}
-              </div>
-
-              <span className="text-sm font-medium text-slate-50">
-                {o.name}
-              </span>
-              <span className="text-[11px] uppercase tracking-wide text-slate-400">
-                {o.category}
-              </span>
+              {CATEGORY_LABELS[c]}
             </button>
           );
         })}
       </div>
+
+      {/* Current Category Title */}
+      <h3 className="text-sm font-semibold text-slate-100">
+        {CATEGORY_LABELS[category]}
+      </h3>
+
+      {/* Overlay Items */}
+      {items.length === 0 ? (
+        <div className="text-xs text-slate-500">
+          No overlays available yet for this category.
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-2">
+          {items.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => addLayer(item.id)}
+              className="rounded-md border border-slate-600 bg-slate-800 p-2 text-[11px] text-slate-100 hover:border-blue-400 hover:bg-slate-700 transition"
+            >
+              {/* If you have thumbnails, you can add an <img> here later */}
+              <div className="line-clamp-2 text-left">{item.name}</div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

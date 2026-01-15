@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-"use client";
-// app/studio/page.tsx
-import { useRef } from "react";
-import TryOnCanvas, { TryOnCanvasHandle } from "../components/TryOnCanvas";
-
-export default function Studio() {
-  const canvasRef = useRef<TryOnCanvasHandle>(null);
-=======
  "use client";
 export default function Studio() {
   return (
@@ -26,7 +17,6 @@ import { useTryOnStore } from "../store/tryon";
 export default function Studio() {
   const canvasRef = useRef<TryOnCanvasHandle>(null);
   const clearGraphics = useTryOnStore((s) => s.clearGraphics);
->>>>>>> 022ef857510bd4ded404d4661bd1c35b1f9f494b
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-rose-50 to-orange-50 p-10 text-center space-y-6">
@@ -51,8 +41,6 @@ export default function Studio() {
         >
           Reset Overlay
         </button>
-<<<<<<< HEAD
-=======
 
          <button
           onClick={() => {canvasRef.current?.resetOverlay();
@@ -62,7 +50,6 @@ export default function Studio() {
       >
         Reset Overlay
       </button>
->>>>>>> 022ef857510bd4ded404d4661bd1c35b1f9f494b
       </div>
 
       <TryOnCanvas ref={canvasRef} />
