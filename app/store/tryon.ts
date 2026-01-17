@@ -34,6 +34,17 @@ export type LayerState = {
 /** ========== Store Shape ========== */
 
 type TryOnState = {
+    selectedIds: string[];
+    selectedOverlayId: string | null;
+    opacity: number;
+    scale: number;
+    rotation: number;
+    offsetX: number;
+    offsetY: number;
+    depth: number;
+    resetTransform: () => void;
+    clearGraphics: () => void;
+
   // Which catalog category is currently selected in the UI
   category: Category | null;
 
@@ -68,6 +79,24 @@ export const useTryOnStore = create<TryOnState>((set, get) => ({
   category: null,
 
   // 🔴 IMPORTANT: every Category key must exist here
+  selectedIds: [],
+  selectedOverlayId: null,
+  opacity: 1,
+  scale: 1,
+  rotation: 0,
+  offsetX: 0,
+  offsetY: 0,
+  depth: 0,
+  resetTransform: () =>
+    set(() => ({
+      opacity: 1,
+      scale: 1,
+      rotation: 0,
+      offsetX: 0,
+      offsetY: 0,
+      depth: 0,
+    })),
+  clearGraphics: () => set(() => ({ layers: [], activeLayerId: null })),
   overlays: {
     rings: [{
       id: "ring-1",

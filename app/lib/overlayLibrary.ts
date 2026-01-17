@@ -23,4 +23,13 @@ export const overlayLibrary: Record<Category, OverlayItem[]> = {
   watches: [
     { id: 'w1', name: 'Orbit Chrono', src: '/assets/overlays/watches/orbit-chrono.png' },
   ],
+  glasses: [
+    { id: 'g1', name: 'Nebula Vision', src: '/assets/overlays/glasses/nebula-vision.png' },
+  ],
+  scarves: [
+    { id: 'sc1', name: 'Cosmic Wrap', src: '/assets/overlays/scarves/cosmic-wrap.png' },
+  ],
+  hats: [
+    { id: 'h1', name: 'Nebula Cap', src: '/assets/overlays/hats/nebula-cap.png' },
+  ],
 };
