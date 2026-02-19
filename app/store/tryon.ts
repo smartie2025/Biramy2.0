@@ -63,12 +63,93 @@ type TryOnState = {
 };
 
 /** ========== Store ========== */
+function  getOverlayItemData():any{
 
+
+return fetch("https://brianyapi.azure-api.net/GetItems", {
+                    method: 'GET', // GET is default, but can be specified
+                    headers: {
+                        'Ocp-Apim-Subscription-Key': '03b624f785954731958df20046afccbc',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    // Check if the request was successful
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json(); // or .text() if the response is not JSON
+                })
+                .then(data => {
+                    console.log(data); // The data returned from the URL
+                        const newOverlayItems: {
+                [key in Category]: OverlayItem[];
+                        } = { rings: [],
+                            necklaces: [],
+                            earrings: [],
+                            bracelets: [],
+                            sunglasses: [],
+                            glasses: [],
+                            hats: [],
+                            scarves: [],
+                            watches: []};
+                    data.forEach((item: any)=>{
+                        item.id=item.name;
+                        switch(item.categoryName.trim()){
+                            case "Glasses":
+                                newOverlayItems.glasses.push(item);
+                                break; 
+                            case "rings":
+                                newOverlayItems.rings.push(item);
+                                break;
+                            case "Necklace":
+                                newOverlayItems.necklaces.push(item);
+                                break;
+                            case "earrings":
+                                newOverlayItems.earrings.push(item);
+                                break;
+                            case "bracelets":
+                                newOverlayItems.bracelets.push(item);
+                                break;
+                            case "sunglasses":
+                                newOverlayItems.sunglasses.push(item);
+                                break;
+                            case "hats":
+                                newOverlayItems.hats.push(item);
+                                break;
+                            case "HeadPiece":
+                            case "Scarf":
+                                newOverlayItems.scarves.push(item);
+                                break;
+                            case "watches":
+                                newOverlayItems.watches.push(item);
+                                break;
+                        }
+                    });
+                    //setoverlayItems(newOverlayItems);
+                    return newOverlayItems;
+                });
+
+
+
+}
 export const useTryOnStore = create<TryOnState>((set, get) => ({
   category: null,
 
   // 🔴 IMPORTANT: every Category key must exist here
   overlays: {
+    rings: [],
+    necklaces: [],
+    earrings: [],
+    bracelets: [],
+    sunglasses: [],
+    glasses: [],
+    hats: [],
+    scarves: [],
+    watches: [],
+  },
+
+/*
     rings: [{
       id: "ring-1",
       name: "Diamond Ring",
@@ -114,7 +195,9 @@ export const useTryOnStore = create<TryOnState>((set, get) => ({
       name: "IWC Pilot's watch",
       src: "C:\Users\smart\Desktop\shopping-app-galaxy\Biarmy2.0\public\assets\tryon\overlays\watches",
     },],
-  },
+
+    */
+  
 
   layers: [],
   activeLayerId: null,
@@ -167,3 +250,8 @@ export const useTryOnStore = create<TryOnState>((set, get) => ({
       overlays: { ...s.overlays, [c]: items },
     })),
 }));
+
+// Load data after store initialization
+getOverlayItemData().then((data: Record<Category, OverlayItem[]>) => {
+  useTryOnStore.setState({ overlays: data });
+});
