@@ -83,7 +83,6 @@ export default function FaceTryOn() {
       video.pause();
       // TS typing for srcObject is MediaProvider | null, but sometimes complains
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
       video.srcObject = null;
     }
 

@@ -23,4 +23,7 @@ export const overlayLibrary: Record<Category, OverlayItem[]> = {
   watches: [
     { id: 'w1', name: 'Orbit Chrono', src: '/assets/overlays/watches/orbit-chrono.png' },
   ],
+  glasses: [],
+  hats: [],
+  scarves: []
 };
