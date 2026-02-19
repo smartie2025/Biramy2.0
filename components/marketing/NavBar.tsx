@@ -15,6 +15,12 @@ export default function NavBar() {
           <Link href="#how" className="hover:text-slate-900">HOW IT WORKS</Link>
           <Link href="#collections" className="hover:text-slate-900">COLLECTIONS</Link>
         </nav>
+        <Link
+          href="/try-on"
+            className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-slate-800"
+        >
+          TRY ON  
+        </Link>
 
         <Link
           href="/tryon"
