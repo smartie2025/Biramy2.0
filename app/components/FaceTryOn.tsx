@@ -14,7 +14,16 @@ type Asset = {
   category: string;
   imageUrl: string;
 };
+type OverlayItem = {
+    id: string;
+    name: string;
+    src: string;
+    thumb?: string;
+};
 
+type FaceTryOnProps = {
+    selectedOverlay?: OverlayItem | null;
+};
 type Smoothed = { x: number; y: number; scale: number; rotation: number };
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -37,7 +46,7 @@ const smoothTransform = (prev: Smoothed | null, next: Smoothed, t = 0.22): Smoot
   };
 };
 
-export default function FaceTryOn() {
+export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
   // ---------- UI state ----------
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [started, setStarted] = useState(false);
