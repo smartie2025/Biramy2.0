@@ -1,19 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     initializeFaceLandmarker,
     detectFaceLandmarks,
     getGlassesPosition,
-    getEarringPosition,
+    // getEarringPosition, // keep imported later when we add earrings
 } from "./FaceLandmarkService";
-
-type Asset = {
-    id: string;
-    name: string;
-    category: string;
-    imageUrl: string;
-};
 
 type OverlayItem = {
     id: string;
@@ -31,11 +24,7 @@ type Smoothed = { x: number; y: number; scale: number; rotation: number };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 // Lower t = more smoothing (more stable, more lag). Try 0.18–0.30.
-const smoothTransform = (
-    prev: Smoothed | null,
-    next: Smoothed,
-    t = 0.22
-): Smoothed => {
+const smoothTransform = (prev: Smoothed | null, next: Smoothed, t = 0.22): Smoothed => {
     if (!prev) return next;
 
     // rotation wrap handling (avoid jump near 180/-180)
@@ -54,19 +43,11 @@ const smoothTransform = (
 
 export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
     // ---------- UI state ----------
-    const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">(
-        "idle"
-    );
+    const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
     const [started, setStarted] = useState(false);
 
-    // Assets (Micro Mission B)
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [selectedId, setSelectedId] = useState<string>("");
-
     //---------- Debug states -----------
-    const [imgStatus, setImgStatus] = useState<
-        "none" | "loading" | "loaded" | "error"
-    >("none");
+    const [imgStatus, setImgStatus] = useState<"none" | "loading" | "loaded" | "error">("none");
     const [imgError, setImgError] = useState<string>("");
 
     // ---------- Refs ----------
@@ -77,21 +58,14 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
     const streamRef = useRef<MediaStream | null>(null);
 
     const smoothGlassesRef = useRef<Smoothed | null>(null);
-    const smoothLeftEarringRef = useRef<Smoothed | null>(null);
-    const smoothRightEarringRef = useRef<Smoothed | null>(null);
 
-    // Selected overlay image (Micro Mission C)
+    // Selected overlay image
     const overlayImgRef = useRef<HTMLImageElement | null>(null);
 
-    const selectedAsset = useMemo(
-        () => assets.find((a) => a.id === selectedId) || null,
-        [assets, selectedId]
-    );
+    // The ONLY source for overlays now:
+    const overlayUrl = selectedOverlay?.src ?? "";
 
-    // Prefer external selection (dropdown) over internal DB list
-    const overlayUrl = selectedOverlay?.src ?? selectedAsset?.imageUrl ?? "";
-
-    // ---------- Stop camera function (stable reference) ----------
+    // ---------- Stop camera function ----------
     const stopCamera = () => {
         cancelAnimationFrame(rafRef.current);
 
@@ -116,49 +90,12 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
 
         // reset smoothing so overlay doesn't "ghost"
         smoothGlassesRef.current = null;
-        smoothLeftEarringRef.current = null;
-        smoothRightEarringRef.current = null;
 
         setStatus("idle");
         setStarted(false);
     };
 
-    // ---------- Fetch assets (Micro Mission B) ----------
-    // Optional: skip DB assets if dropdown selection is driving
-    useEffect(() => {
-        if (selectedOverlay) return;
-
-        let cancelled = false;
-
-        (async () => {
-            try {
-                const res = await fetch("/api/assets", { cache: "no-store" });
-                const data = await res.json();
-
-                if (cancelled) return;
-
-                const list: Asset[] = (data?.assets ?? data?.columns ?? []).map(
-                    (x: any) => ({
-                        id: String(x.id),
-                        name: String(x.name),
-                        category: String(x.category),
-                        imageUrl: String(x.imageUrl),
-                    })
-                );
-
-                setAssets(list);
-            } catch (e) {
-                console.warn("Failed to fetch assets:", e);
-                setAssets([]);
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [selectedOverlay]);
-
-    // ---------- Load selected image (Micro Mission C) ----------
+    // ---------- Load selected image ----------
     useEffect(() => {
         if (!overlayUrl) {
             overlayImgRef.current = null;
@@ -243,14 +180,9 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                     if (faceDetected && landmarks) {
                         const img = overlayImgRef.current;
 
-                        // Always compute glasses position (stable anchor)
+                        // Glasses anchor
                         const g = getGlassesPosition(landmarks, c.width, c.height);
-                        const gNext: Smoothed = {
-                            x: g.x,
-                            y: g.y,
-                            scale: g.scale,
-                            rotation: g.rotation,
-                        };
+                        const gNext: Smoothed = { x: g.x, y: g.y, scale: g.scale, rotation: g.rotation };
                         const t = (smoothGlassesRef.current = smoothTransform(
                             smoothGlassesRef.current,
                             gNext,
@@ -258,14 +190,15 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                         ));
 
                         if (img) {
+                            // draw overlay
                             drawOverlayImage(ctx, img, t, 1.15, 0.45);
                         } else {
+                            // fallback placeholder
                             drawGlasses(ctx, t);
                         }
                     } else {
+                        // Reset smoothing when face lost
                         smoothGlassesRef.current = null;
-                        smoothLeftEarringRef.current = null;
-                        smoothRightEarringRef.current = null;
                     }
 
                     rafRef.current = requestAnimationFrame(loop);
@@ -284,8 +217,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
         return () => {
             cancelled = true;
             cancelAnimationFrame(rafRef.current);
-            if (streamRef.current)
-                streamRef.current.getTracks().forEach((t) => t.stop());
+            if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [started]);
@@ -305,45 +237,26 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                 />
             </div>
 
+            {/* Status */}
             <div className="mt-3 text-sm opacity-80">
                 {status === "loading" && "Loading face tracker…"}
-                {status === "ready" &&
-                    "Tracker ready. Move your head—overlay should stay locked."}
+                {status === "ready" && "Tracker ready. Move your head—overlay should stay locked."}
                 {status === "error" && "Camera/tracker error. Check permissions and console."}
                 {status === "idle" && "Select an item, then start the camera."}
             </div>
 
-            <div className="mt-4 space-y-2">
-                <div className="mt-2 text-xs">
-                    Image status: <span className="font-semibold">{imgStatus}</span>
-                    {imgError ? <div className="text-red-600 break-all">{imgError}</div> : null}
-                </div>
-
-                {/* Keep your internal picker (optional). If dropdown is used, this can be ignored. */}
-                <label className="text-sm font-medium">Choose an item (internal)</label>
-                <select
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    value={selectedId}
-                    onChange={(e) => setSelectedId(e.target.value)}
-                    disabled={!!selectedOverlay}
-                >
-                    <option value="">-- Select --</option>
-                    {assets.map((a) => (
-                        <option key={a.id} value={a.id}>
-                            {a.category} — {a.name}
-                        </option>
-                    ))}
-                </select>
-
-                {selectedAsset?.imageUrl && !selectedOverlay ? (
-                    <img
-                        src={selectedAsset.imageUrl}
-                        alt={selectedAsset.name}
-                        className="mt-2 w-40 rounded border"
-                    />
-                ) : null}
+            {/* Debug */}
+            <div className="mt-2 text-xs">
+                Selected overlay:{" "}
+                <span className="font-semibold">{selectedOverlay ? selectedOverlay.name : "none"}</span>
             </div>
 
+            <div className="mt-2 text-xs">
+                Image status: <span className="font-semibold">{imgStatus}</span>
+                {imgError ? <div className="text-red-600 break-all">{imgError}</div> : null}
+            </div>
+
+            {/* Buttons */}
             {!started ? (
                 <button
                     onClick={() => setStarted(true)}

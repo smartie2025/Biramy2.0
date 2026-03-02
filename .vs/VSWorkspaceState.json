@@ -4,6 +4,7 @@
     "\\app",
     "\\app\\(app)",
     "\\app\\(app)\\try-on",
+    "\\app\\(site)",
     "\\app\\api",
     "\\app\\api\\tryon-assets",
     "\\app\\components",
@@ -11,6 +12,5 @@
     "\\app\\store",
     "\\app\\studio"
   ],
-  "SelectedNode": "\\app\\(app)\\try-on\\page.tsx",
   "PreviewInSolutionExplorer": false
 }
