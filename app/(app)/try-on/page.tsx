@@ -2,31 +2,23 @@
 
 import { useState } from "react";
 import FaceTryOn from "../../components/FaceTryOn";
-import AssetDropdown from "../../components/AssetDropdown";
-
-type OverlayItem = {
-    id: string;
-    name: string;
-    src: string;
-    thumb?: string;
-};
-
+import AssetDropdown, { type OverlayItem } from "../../components/AssetDropdown";
+import CategoryTabs, { type Category } from "../../components/CategoryTabs";
 export default function Page() {
+    const [category, setCategory] = useState<Category>("glasses");
     const [selected, setSelected] = useState<OverlayItem | null>(null);
 
     return (
-        <main className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Try On</h1>
+        <main className="p-4 pb-24">
+            <h1 className="text-2xl font-bold mb-3">Try On</h1>
 
-            <AssetDropdown onSelect={setSelected} />
-
-            <div className="mt-2 text-sm opacity-70">
-                Selected: {selected ? `${selected.name} (${selected.src})` : "none"}
-            </div>
+            <AssetDropdown category={category} onSelect={setSelected} />
 
             <div className="mt-4">
                 <FaceTryOn selectedOverlay={selected} />
             </div>
+
+            <CategoryTabs value={category} onChange={setCategory} />
         </main>
     );
 }
