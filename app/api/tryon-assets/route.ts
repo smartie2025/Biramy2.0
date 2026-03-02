@@ -1,77 +1,88 @@
-import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
+import type { NextRequest } from "next/server";
 
-export const runtime = "nodejs";
+export const runtime = "nodejs"; // IMPORTANT: fs requires Node runtime
 
-/** ===== Cache Settings ===== */
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const BASE_PUBLIC_DIR = path.join(process.cwd(), "public", "assets", "tryon", "overlays");
+const BASE_PUBLIC_URL = "/assets/tryon/overlays";
 
-type OverlayItem = {
-    id: string;
-    name: string;
-    src: string;
-    thumb?: string;
-};
+const VALID_EXT = new Set([".png", ".jpg", ".jpeg", ".webp"]);
 
-type OverlayCatalog = Record<string, OverlayItem[]>;
-
-/** ===== In-memory cache ===== */
-let cachedData: OverlayCatalog | null = null;
-let lastFetchTime = 0;
-
-/** ===== Mock fetch function (replace later with DB/APIM call) ===== */
-async function fetchOverlaysFromSource(): Promise<OverlayCatalog> {
-    // For now we return mock
-    return {
-        rings: [],
-        necklaces: [],
-        earrings: [
-            {
-                id: "earrings-1",
-                name: "Mock Earrings 1",
-                src: "/assets/tryon/overlays/earrings/earrings-1.png",
-                thumb: "/assets/tryon/overlays/earrings/earrings-1-thumb.png",
-            },
-        ],
-        bracelets: [],
-        sunglasses: [],
-        glasses: [
-            {
-                id: "glasses-1",
-                name: "Mock Glasses 1",
-                src: "/assets/tryon/overlays/glasses/glasses-1.png",
-                thumb: "/assets/tryon/overlays/glasses/glasses-1-thumb.png",
-            },
-        ],
-        hats: [],
-        scarves: [],
-        watches: [],
-    };
+function prettifyName(filenameNoExt: string) {
+    // earrings-1 -> Earrings 1
+    return filenameNoExt
+        .replace(/[-_]+/g, " ")
+        .replace(/\b\w/g, (m) => m.toUpperCase());
 }
 
-export async function GET(req: Request) {
-    const now = Date.now();
-
-    // Check cache validity
-    if (!cachedData || now - lastFetchTime > CACHE_TTL_MS) {
-        cachedData = await fetchOverlaysFromSource();
-        lastFetchTime = now;
-        console.log("Overlay cache refreshed");
+function safeReadDir(dir: string): string[] {
+    try {
+        return fs.readdirSync(dir);
+    } catch {
+        return [];
     }
+}
 
-    const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category");
+function listCategory(category: string) {
+    const catDir = path.join(BASE_PUBLIC_DIR, category);
+    const files = safeReadDir(catDir);
 
-    if (category && category in cachedData) {
-        return NextResponse.json({
-            ok: true,
-            overlays: { [category]: cachedData[category] },
-            cached: true,
+    return files
+        .filter((f) => VALID_EXT.has(path.extname(f).toLowerCase()))
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+        .map((file) => {
+            const ext = path.extname(file);
+            const base = path.basename(file, ext);
+
+            return {
+                id: `${category}-${base}`, // unique
+                name: prettifyName(base),
+                src: `${BASE_PUBLIC_URL}/${category}/${file}`,
+                thumb: `${BASE_PUBLIC_URL}/${category}/${file}`, // optional; same image for now
+            };
         });
+}
+
+export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const category = (searchParams.get("category") || "").trim().toLowerCase();
+
+    // If a category is provided, return only that category
+    if (category) {
+        const items = listCategory(category);
+
+        return Response.json(
+            {
+                ok: true,
+                source: "public-folder-scan",
+                overlays: { [category]: items },
+            },
+            { headers: { "Cache-Control": "no-store" } } // keep dev behavior deterministic
+        );
     }
 
-    return NextResponse.json({
-        ok: true,
-        overlays: cachedData,
-        cached: true,
+    // If no category, scan ALL subfolders in /public/assets/tryon/overlays
+    const subfolders = safeReadDir(BASE_PUBLIC_DIR).filter((name) => {
+        const full = path.join(BASE_PUBLIC_DIR, name);
+        try {
+            return fs.statSync(full).isDirectory();
+        } catch {
+            return false;
+        }
     });
+
+    const overlays: Record<string, any[]> = {};
+    for (const folder of subfolders) {
+        overlays[folder] = listCategory(folder);
+    }
+
+    return Response.json(
+        {
+            ok: true,
+            source: "public-folder-scan",
+            overlays,
+        },
+        { headers: { "Cache-Control": "no-store" } }
+    );
 }

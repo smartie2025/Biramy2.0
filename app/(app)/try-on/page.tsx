@@ -15,7 +15,7 @@ export default function Page() {
             <AssetDropdown category={category} onSelect={setSelected} />
 
             <div className="mt-4">
-                <FaceTryOn selectedOverlay={selected} />
+                <FaceTryOn selectedOverlay={selected} category={category} />
             </div>
 
             <CategoryTabs value={category} onChange={setCategory} />

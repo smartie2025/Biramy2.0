@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { Category } from "./CategoryTabs";
+
 import {
     initializeFaceLandmarker,
     detectFaceLandmarks,
     getGlassesPosition,
-    // getEarringPosition, // keep imported later when we add earrings
+    getEarringPosition, // ✅ make sure this exists/exported in FaceLandmarkService
 } from "./FaceLandmarkService";
 
 type OverlayItem = {
@@ -17,6 +19,7 @@ type OverlayItem = {
 
 type FaceTryOnProps = {
     selectedOverlay?: OverlayItem | null;
+    category: Category;
 };
 
 type Smoothed = { x: number; y: number; scale: number; rotation: number };
@@ -41,7 +44,7 @@ const smoothTransform = (prev: Smoothed | null, next: Smoothed, t = 0.22): Smoot
     };
 };
 
-export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
+export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps) {
     // ---------- UI state ----------
     const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
     const [started, setStarted] = useState(false);
@@ -57,7 +60,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
     const rafRef = useRef<number>(0);
     const streamRef = useRef<MediaStream | null>(null);
 
-    const smoothGlassesRef = useRef<Smoothed | null>(null);
+    const smoothRef = useRef<Smoothed | null>(null);
 
     // Selected overlay image
     const overlayImgRef = useRef<HTMLImageElement | null>(null);
@@ -89,7 +92,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
         }
 
         // reset smoothing so overlay doesn't "ghost"
-        smoothGlassesRef.current = null;
+        smoothRef.current = null;
 
         setStatus("idle");
         setStarted(false);
@@ -177,28 +180,56 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
 
                     const { landmarks, faceDetected } = detectFaceLandmarks(v, detector);
 
+                    // Category-aware anchoring
                     if (faceDetected && landmarks) {
                         const img = overlayImgRef.current;
 
-                        // Glasses anchor
-                        const g = getGlassesPosition(landmarks, c.width, c.height);
-                        const gNext: Smoothed = { x: g.x, y: g.y, scale: g.scale, rotation: g.rotation };
-                        const t = (smoothGlassesRef.current = smoothTransform(
-                            smoothGlassesRef.current,
-                            gNext,
-                            0.22
-                        ));
+                        if (category === "earrings" && img) {
+                            // ---- LEFT EAR ----
+                            const leftAnchor = getEarringPosition(landmarks, "left", c.width, c.height);
+                            const leftNext: Smoothed = {
+                                x: leftAnchor.x,
+                                y: leftAnchor.y,
+                                scale: leftAnchor.scale,
+                                rotation: leftAnchor.rotation,
+                            };
 
-                        if (img) {
-                            // draw overlay
-                            drawOverlayImage(ctx, img, t, 1.15, 0.45);
+                            const leftT = smoothTransform(null, leftNext, 0.22);
+                            drawOverlayImage(ctx, img, leftT, 0.55, 0.55);
+
+                            // ---- RIGHT EAR ----
+                            const rightAnchor = getEarringPosition(landmarks, "right", c.width, c.height);
+                            const rightNext: Smoothed = {
+                                x: rightAnchor.x,
+                                y: rightAnchor.y,
+                                scale: rightAnchor.scale,
+                                rotation: rightAnchor.rotation,
+                            };
+
+                            const rightT = smoothTransform(null, rightNext, 0.22);
+                            drawOverlayImage(ctx, img, rightT, 0.55, 0.55);
+
                         } else {
-                            // fallback placeholder
-                            drawGlasses(ctx, t);
+                            // Glasses & sunglasses
+                            const anchor = getGlassesPosition(landmarks, c.width, c.height);
+
+                            const next: Smoothed = {
+                                x: anchor.x,
+                                y: anchor.y,
+                                scale: anchor.scale,
+                                rotation: anchor.rotation,
+                            };
+
+                            const t = (smoothRef.current = smoothTransform(smoothRef.current, next, 0.22));
+
+                            if (img) {
+                                drawOverlayImage(ctx, img, t, 1.15, 0.45);
+                            } else {
+                                drawGlasses(ctx, t);
+                            }
                         }
                     } else {
-                        // Reset smoothing when face lost
-                        smoothGlassesRef.current = null;
+                        smoothRef.current = null;
                     }
 
                     rafRef.current = requestAnimationFrame(loop);
@@ -220,17 +251,12 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
             if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [started]);
+    }, [started, category]);
 
     return (
         <div className="w-full max-w-lg mx-auto">
             <div className="relative w-full overflow-hidden rounded-2xl shadow">
-                <video
-                    ref={videoRef}
-                    className="w-full h-auto transform scale-x-[-1]"
-                    playsInline
-                    muted
-                />
+                <video ref={videoRef} className="w-full h-auto transform scale-x-[-1]" playsInline muted />
                 <canvas
                     ref={canvasRef}
                     className="absolute inset-0 w-full h-full pointer-events-none transform scale-x-[-1]"
