@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Category } from "./CategoryTabs";
+import { useTryOnStore } from "../store/tryon";
 
 import {
     initializeFaceLandmarker,
     detectFaceLandmarks,
     getGlassesPosition,
-    getEarringPosition, // ✅ make sure this exists/exported in FaceLandmarkService
+    getEarringPosition,
 } from "./FaceLandmarkService";
 
 type OverlayItem = {
@@ -49,9 +50,12 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
     const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
     const [started, setStarted] = useState(false);
 
-    //---------- Debug states -----------
+    // ---------- Debug states ----------
     const [imgStatus, setImgStatus] = useState<"none" | "loading" | "loaded" | "error">("none");
     const [imgError, setImgError] = useState<string>("");
+
+    // ---------- Gamification UI ----------
+    const [xpToast, setXpToast] = useState<string | null>(null);
 
     // ---------- Refs ----------
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -62,11 +66,23 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
 
     const smoothRef = useRef<Smoothed | null>(null);
 
+    // Prevent repeated XP for re-rendering same selected item
+    const lastRewardedOverlayIdRef = useRef<string | null>(null);
+
     // Selected overlay image
     const overlayImgRef = useRef<HTMLImageElement | null>(null);
 
     // The ONLY source for overlays now:
     const overlayUrl = selectedOverlay?.src ?? "";
+
+    // ---------- Store ----------
+    const xp = useTryOnStore((s) => s.xp);
+    const level = useTryOnStore((s) => s.level);
+    const missions = useTryOnStore((s) => s.missions);
+    const addXP = useTryOnStore((s) => s.addXP);
+    const incrementTryOnMission = useTryOnStore((s) => s.incrementTryOnMission);
+
+    const tryMission = missions.find((m) => m.id === "try-3-items");
 
     // ---------- Stop camera function ----------
     const stopCamera = () => {
@@ -208,7 +224,6 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
 
                             const rightT = smoothTransform(null, rightNext, 0.22);
                             drawOverlayImage(ctx, img, rightT, 0.55, 0.55);
-
                         } else {
                             // Glasses & sunglasses
                             const anchor = getGlassesPosition(landmarks, c.width, c.height);
@@ -255,12 +270,38 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
 
     return (
         <div className="w-full max-w-lg mx-auto">
+            {/* Game HUD */}
+            <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
+                <div className="rounded-xl bg-slate-100 px-3 py-2">
+                    <div className="opacity-60">XP</div>
+                    <div className="font-semibold">{xp}</div>
+                </div>
+
+                <div className="rounded-xl bg-slate-100 px-3 py-2">
+                    <div className="opacity-60">Level</div>
+                    <div className="font-semibold">{level}</div>
+                </div>
+
+                <div className="rounded-xl bg-slate-100 px-3 py-2">
+                    <div className="opacity-60">Mission</div>
+                    <div className="font-semibold">
+                        {tryMission ? `${tryMission.current}/${tryMission.target}` : "—"}
+                    </div>
+                </div>
+            </div>
+
             <div className="relative w-full overflow-hidden rounded-2xl shadow">
                 <video ref={videoRef} className="w-full h-auto transform scale-x-[-1]" playsInline muted />
                 <canvas
                     ref={canvasRef}
                     className="absolute inset-0 w-full h-full pointer-events-none transform scale-x-[-1]"
                 />
+
+                {xpToast ? (
+                    <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-black/75 px-4 py-2 text-sm font-medium text-white shadow-lg">
+                        {xpToast}
+                    </div>
+                ) : null}
             </div>
 
             {/* Status */}
@@ -281,6 +322,16 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
                 Image status: <span className="font-semibold">{imgStatus}</span>
                 {imgError ? <div className="text-red-600 break-all">{imgError}</div> : null}
             </div>
+
+            {tryMission ? (
+                <div className="mt-3 rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                    <div className="font-semibold">{tryMission.title}</div>
+                    <div className="text-xs opacity-70">
+                        Progress: {tryMission.current}/{tryMission.target}
+                        {tryMission.completed ? " • Complete!" : ""}
+                    </div>
+                </div>
+            ) : null}
 
             {/* Buttons */}
             {!started ? (

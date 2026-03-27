@@ -3,14 +3,8 @@
     "",
     "\\app",
     "\\app\\(app)",
-    "\\app\\(app)\\try-on",
-    "\\app\\(site)",
-    "\\app\\api",
-    "\\app\\api\\tryon-assets",
-    "\\app\\components",
-    "\\app\\lib",
-    "\\app\\store",
-    "\\app\\studio"
+    "\\app\\(app)\\try-on"
   ],
+  "SelectedNode": "\\app\\components",
   "PreviewInSolutionExplorer": false
 }
