@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Category } from "./CategoryTabs";
 import { useTryOnStore } from "../store/tryon";
 
@@ -27,11 +27,9 @@ type Smoothed = { x: number; y: number; scale: number; rotation: number };
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-// Lower t = more smoothing (more stable, more lag). Try 0.18–0.30.
 const smoothTransform = (prev: Smoothed | null, next: Smoothed, t = 0.22): Smoothed => {
     if (!prev) return next;
 
-    // rotation wrap handling (avoid jump near 180/-180)
     const r1 = prev.rotation;
     const r2 = next.rotation;
     const diff = ((r2 - r1 + 540) % 360) - 180;
@@ -45,46 +43,31 @@ const smoothTransform = (prev: Smoothed | null, next: Smoothed, t = 0.22): Smoot
     };
 };
 
-export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps) {
-    // ---------- UI state ----------
+export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
     const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
     const [started, setStarted] = useState(false);
-
-    // ---------- Debug states ----------
     const [imgStatus, setImgStatus] = useState<"none" | "loading" | "loaded" | "error">("none");
     const [imgError, setImgError] = useState<string>("");
 
-    // ---------- Gamification UI ----------
-    const [xpToast, setXpToast] = useState<string | null>(null);
-
-    // ---------- Refs ----------
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-
     const rafRef = useRef<number>(0);
     const streamRef = useRef<MediaStream | null>(null);
-
     const smoothRef = useRef<Smoothed | null>(null);
+    const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
 
-    // Prevent repeated XP for re-rendering same selected item
-    const lastRewardedOverlayIdRef = useRef<string | null>(null);
-
-    // Selected overlay image
-    const overlayImgRef = useRef<HTMLImageElement | null>(null);
-
-    // The ONLY source for overlays now:
-    const overlayUrl = selectedOverlay?.src ?? "";
-
-    // ---------- Store ----------
+    const layers = useTryOnStore((s) => s.layers);
     const xp = useTryOnStore((s) => s.xp);
     const level = useTryOnStore((s) => s.level);
     const missions = useTryOnStore((s) => s.missions);
-    const addXP = useTryOnStore((s) => s.addXP);
-    const incrementTryOnMission = useTryOnStore((s) => s.incrementTryOnMission);
 
     const tryMission = missions.find((m) => m.id === "try-3-items");
 
-    // ---------- Stop camera function ----------
+    const visibleLayers = useMemo(
+        () => layers.filter((layer) => !!layer.asset?.src),
+        [layers]
+    );
+
     const stopCamera = () => {
         cancelAnimationFrame(rafRef.current);
 
@@ -96,9 +79,8 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
         const video = videoRef.current;
         if (video) {
             video.pause();
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            video.srcObject = null;
+            const mediaVideo = video as HTMLVideoElement & { srcObject: MediaStream | null };
+            mediaVideo.srcObject = null;
         }
 
         const canvas = canvasRef.current;
@@ -107,17 +89,15 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
             ctx?.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        // reset smoothing so overlay doesn't "ghost"
         smoothRef.current = null;
-
         setStatus("idle");
         setStarted(false);
     };
 
-    // ---------- Load selected image ----------
     useEffect(() => {
+        const overlayUrl = selectedOverlay?.src ?? "";
+
         if (!overlayUrl) {
-            overlayImgRef.current = null;
             setImgStatus("none");
             setImgError("");
             return;
@@ -129,19 +109,25 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
         const img = new Image();
         img.src = overlayUrl;
 
-        img.onload = () => {
-            overlayImgRef.current = img;
-            setImgStatus("loaded");
-        };
-
+        img.onload = () => setImgStatus("loaded");
         img.onerror = () => {
-            overlayImgRef.current = null;
             setImgStatus("error");
             setImgError(`Failed to load: ${overlayUrl}`);
         };
-    }, [overlayUrl]);
+    }, [selectedOverlay]);
 
-    // ---------- Camera + tracking loop ----------
+    useEffect(() => {
+        visibleLayers.forEach((layer) => {
+            const asset = layer.asset;
+            if (!asset?.id || !asset?.src) return;
+            if (imageCacheRef.current[asset.id]) return;
+
+            const img = new Image();
+            img.src = asset.src;
+            imageCacheRef.current[asset.id] = img;
+        });
+    }, [visibleLayers]);
+
     useEffect(() => {
         if (!started) return;
 
@@ -164,9 +150,8 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
                 const video = videoRef.current;
                 if (!video) throw new Error("Video element not ready");
 
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                video.srcObject = stream;
+                const mediaVideo = video as HTMLVideoElement & { srcObject: MediaStream | null };
+                mediaVideo.srcObject = stream;
 
                 await new Promise<void>((resolve) => {
                     video.onloadedmetadata = () => resolve();
@@ -188,7 +173,6 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
                     const c = canvasRef.current;
                     if (!v || !c) return;
 
-                    // Ensure canvas matches the video’s actual pixel dimensions
                     if (c.width !== v.videoWidth) c.width = v.videoWidth;
                     if (c.height !== v.videoHeight) c.height = v.videoHeight;
 
@@ -196,51 +180,55 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
 
                     const { landmarks, faceDetected } = detectFaceLandmarks(v, detector);
 
-                    // Category-aware anchoring
                     if (faceDetected && landmarks) {
-                        const img = overlayImgRef.current;
+                        const glassesAnchor = getGlassesPosition(landmarks, c.width, c.height);
 
-                        if (category === "earrings" && img) {
-                            // ---- LEFT EAR ----
-                            const leftAnchor = getEarringPosition(landmarks, "left", c.width, c.height);
-                            const leftNext: Smoothed = {
-                                x: leftAnchor.x,
-                                y: leftAnchor.y,
-                                scale: leftAnchor.scale,
-                                rotation: leftAnchor.rotation,
-                            };
+                        const next: Smoothed = {
+                            x: glassesAnchor.x,
+                            y: glassesAnchor.y,
+                            scale: glassesAnchor.scale,
+                            rotation: glassesAnchor.rotation,
+                        };
 
-                            const leftT = smoothTransform(null, leftNext, 0.22);
-                            drawOverlayImage(ctx, img, leftT, 0.55, 0.55);
+                        const baseT = (smoothRef.current = smoothTransform(smoothRef.current, next, 0.22));
 
-                            // ---- RIGHT EAR ----
-                            const rightAnchor = getEarringPosition(landmarks, "right", c.width, c.height);
-                            const rightNext: Smoothed = {
-                                x: rightAnchor.x,
-                                y: rightAnchor.y,
-                                scale: rightAnchor.scale,
-                                rotation: rightAnchor.rotation,
-                            };
+                        for (const layer of visibleLayers) {
+                            const img = imageCacheRef.current[layer.asset.id];
+                            if (!img || !img.complete) continue;
 
-                            const rightT = smoothTransform(null, rightNext, 0.22);
-                            drawOverlayImage(ctx, img, rightT, 0.55, 0.55);
-                        } else {
-                            // Glasses & sunglasses
-                            const anchor = getGlassesPosition(landmarks, c.width, c.height);
+                            if (layer.category === "earrings") {
+                                const leftAnchor = getEarringPosition(landmarks, "left", c.width, c.height);
+                                const rightAnchor = getEarringPosition(landmarks, "right", c.width, c.height);
 
-                            const next: Smoothed = {
-                                x: anchor.x,
-                                y: anchor.y,
-                                scale: anchor.scale,
-                                rotation: anchor.rotation,
-                            };
+                                const leftT: Smoothed = {
+                                    x: leftAnchor.x + layer.x,
+                                    y: leftAnchor.y + layer.y,
+                                    scale: leftAnchor.scale * layer.scale * (1 + layer.z * 0.1),
+                                    rotation: leftAnchor.rotation + layer.rotation,
+                                };
 
-                            const t = (smoothRef.current = smoothTransform(smoothRef.current, next, 0.22));
+                                const rightT: Smoothed = {
+                                    x: rightAnchor.x + layer.x,
+                                    y: rightAnchor.y + layer.y,
+                                    scale: rightAnchor.scale * layer.scale * (1 + layer.z * 0.1),
+                                    rotation: rightAnchor.rotation + layer.rotation,
+                                };
 
-                            if (img) {
-                                drawOverlayImage(ctx, img, t, 1.15, 0.45);
+                                drawOverlayImage(ctx, img, leftT, 0.55, 0.55, layer.opacity);
+                                drawOverlayImage(ctx, img, rightT, 0.55, 0.55, layer.opacity);
                             } else {
-                                drawGlasses(ctx, t);
+                                const t: Smoothed = {
+                                    x: baseT.x + layer.x,
+                                    y: baseT.y + layer.y,
+                                    scale: baseT.scale * layer.scale * (1 + layer.z * 0.1),
+                                    rotation: baseT.rotation + layer.rotation,
+                                };
+
+                                if (layer.category === "glasses" || layer.category === "sunglasses") {
+                                    drawOverlayImage(ctx, img, t, 1.15, 0.45, layer.opacity);
+                                } else {
+                                    drawOverlayImage(ctx, img, t, 0.9, 0.9, layer.opacity);
+                                }
                             }
                         }
                     } else {
@@ -265,12 +253,10 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
             cancelAnimationFrame(rafRef.current);
             if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [started, category]);
+    }, [started, visibleLayers]);
 
     return (
         <div className="w-full max-w-lg mx-auto">
-            {/* Game HUD */}
             <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
                 <div className="rounded-xl bg-slate-100 px-3 py-2">
                     <div className="opacity-60">XP</div>
@@ -296,15 +282,8 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
                     ref={canvasRef}
                     className="absolute inset-0 w-full h-full pointer-events-none transform scale-x-[-1]"
                 />
-
-                {xpToast ? (
-                    <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-black/75 px-4 py-2 text-sm font-medium text-white shadow-lg">
-                        {xpToast}
-                    </div>
-                ) : null}
             </div>
 
-            {/* Status */}
             <div className="mt-3 text-sm opacity-80">
                 {status === "loading" && "Loading face tracker…"}
                 {status === "ready" && "Tracker ready. Move your head—overlay should stay locked."}
@@ -312,7 +291,6 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
                 {status === "idle" && "Select an item, then start the camera."}
             </div>
 
-            {/* Debug */}
             <div className="mt-2 text-xs">
                 Selected overlay:{" "}
                 <span className="font-semibold">{selectedOverlay ? selectedOverlay.name : "none"}</span>
@@ -321,6 +299,15 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
             <div className="mt-2 text-xs">
                 Image status: <span className="font-semibold">{imgStatus}</span>
                 {imgError ? <div className="text-red-600 break-all">{imgError}</div> : null}
+            </div>
+
+            <div className="mt-2 text-xs">
+                Visible layers:{" "}
+                <span className="font-semibold">
+                    {visibleLayers.length > 0
+                        ? visibleLayers.map((l) => `${l.asset.name}`).join(" | ")
+                        : "none"}
+                </span>
             </div>
 
             {tryMission ? (
@@ -333,7 +320,6 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
                 </div>
             ) : null}
 
-            {/* Buttons */}
             {!started ? (
                 <button
                     onClick={() => setStarted(true)}
@@ -353,16 +339,16 @@ export default function FaceTryOn({ selectedOverlay, category }: FaceTryOnProps)
     );
 }
 
-// ----- Drawing helpers -----
-
 function drawOverlayImage(
     ctx: CanvasRenderingContext2D,
     img: HTMLImageElement,
     t: Smoothed,
     widthScale = 1,
-    heightScale = 1
+    heightScale = 1,
+    opacity = 1
 ) {
     ctx.save();
+    ctx.globalAlpha = opacity;
     ctx.translate(t.x, t.y);
     ctx.rotate((t.rotation * Math.PI) / 180);
 
@@ -370,26 +356,5 @@ function drawOverlayImage(
     const h = t.scale * heightScale;
 
     ctx.drawImage(img, -w / 2, -h / 2, w, h);
-    ctx.restore();
-}
-
-function drawGlasses(ctx: CanvasRenderingContext2D, t: Smoothed) {
-    ctx.save();
-    ctx.translate(t.x, t.y);
-    ctx.rotate((t.rotation * Math.PI) / 180);
-
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "black";
-
-    const w = t.scale;
-    const h = t.scale * 0.35;
-
-    ctx.strokeRect(-w / 2, -h / 2, w, h);
-
-    ctx.beginPath();
-    ctx.moveTo(-w * 0.08, 0);
-    ctx.lineTo(w * 0.08, 0);
-    ctx.stroke();
-
     ctx.restore();
 }

@@ -13,10 +13,10 @@ export type OverlayItem = {
 
 type Props = {
     category: Category;
-    onSelect: (item: OverlayItem | null) => void;
+    onSelectAction: (item: OverlayItem | null) => void;
 };
 
-export default function AssetDropdown({ category, onSelect }: Props) {
+export default function AssetDropdown({ category, onSelectAction }: Props) {
     const [items, setItems] = useState<OverlayItem[]>([]);
     const [error, setError] = useState<string | null>(null);
 
@@ -35,15 +35,42 @@ export default function AssetDropdown({ category, onSelect }: Props) {
                 const res = await fetch(`/api/tryon-assets?category=${category}`, {
                     cache: "no-store",
                 });
+
                 const data = await res.json();
 
-                if (!data.ok) throw new Error(data.error ?? "API returned ok=false");
+                if (!data.ok) {
+                    throw new Error(data.error ?? "API returned ok=false");
+                }
 
-                const list: OverlayItem[] = data.overlays?.[category] ?? [];
+                const rawList = data.overlays?.[category] ?? [];
+                type RawOverlayItem = {
+                    id?: string | number;
+                    name?: string;
+                    src?: string;
+                    url?: string;
+                    imageUrl?: string;
+                    image?: string;
+                    thumb?: string;
+                    thumbnail?: string;
+                };
+
+                const list: OverlayItem[] = (rawList as RawOverlayItem[]).map((item) => ({
+                    id: String(item.id ?? item.name ?? crypto.randomUUID()),
+                    name: item.name ?? "Unnamed Item",
+                    src: item.src ?? item.url ?? item.imageUrl ?? item.image ?? "",
+                    thumb:
+                        item.thumb ??
+                        item.thumbnail ??
+                        item.src ??
+                        item.url ??
+                        item.imageUrl ??
+                        item.image ??
+                        "",
+                }));
 
                 if (!cancelled) {
                     setItems(list);
-                    onSelect(null);
+                    onSelectAction(null);
                 }
             } catch (e: unknown) {
                 const message = e instanceof Error ? e.message : "Fetch failed";
@@ -56,7 +83,7 @@ export default function AssetDropdown({ category, onSelect }: Props) {
         return () => {
             cancelled = true;
         };
-    }, [category, onSelect]);
+    }, [category, onSelectAction]);
 
     if (error) {
         return <div className="text-red-600">Dropdown error: {error}</div>;
@@ -70,11 +97,11 @@ export default function AssetDropdown({ category, onSelect }: Props) {
                 const id = e.target.value;
                 const chosen = items.find((x) => x.id === id) ?? null;
 
-                onSelect(chosen);
+                onSelectAction(chosen);
 
                 if (!chosen) return;
 
-                addLayer(chosen.id);
+                addLayer(chosen, category);
                 setActiveLayer(chosen.id);
                 addXP(10);
                 incrementTryOnMission();

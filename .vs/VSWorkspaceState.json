@@ -3,8 +3,13 @@
     "",
     "\\app",
     "\\app\\(app)",
-    "\\app\\(app)\\try-on"
+    "\\app\\(app)\\try-on",
+    "\\app\\api",
+    "\\app\\api\\tryon-assets",
+    "\\app\\components",
+    "\\app\\lib",
+    "\\app\\store"
   ],
-  "SelectedNode": "\\app\\components",
+  "SelectedNode": "\\app\\api\\tryon-assets\\route.ts",
   "PreviewInSolutionExplorer": false
 }

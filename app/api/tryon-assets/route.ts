@@ -1,88 +1,140 @@
-import fs from "fs";
-import path from "path";
 import type { NextRequest } from "next/server";
 
-export const runtime = "nodejs"; // IMPORTANT: fs requires Node runtime
+export const runtime = "nodejs";
 
-const BASE_PUBLIC_DIR = path.join(process.cwd(), "public", "assets", "tryon", "overlays");
-const BASE_PUBLIC_URL = "/assets/tryon/overlays";
+type ApiItem = {
+    id?: string | number;
+    name?: string;
+    url?: string;
+    src?: string;
+    imageUrl?: string;
+    image?: string;
+    thumb?: string;
+    thumbnail?: string;
+    categoryName?: string;
+};
 
-const VALID_EXT = new Set([".png", ".jpg", ".jpeg", ".webp"]);
+const API_URL = "http://70.26.226.162:7124/biramy/api/GetItems";
 
-function prettifyName(filenameNoExt: string) {
-    // earrings-1 -> Earrings 1
-    return filenameNoExt
-        .replace(/[-_]+/g, " ")
-        .replace(/\b\w/g, (m) => m.toUpperCase());
-}
+function mapBackendCategoryToFrontend(categoryName: string): string | null {
+    const value = categoryName.trim();
 
-function safeReadDir(dir: string): string[] {
-    try {
-        return fs.readdirSync(dir);
-    } catch {
-        return [];
+    switch (value) {
+        case "Glasses":
+            return "glasses";
+        case "Sunglasses":
+            return "sunglasses";
+        case "Earrings":
+        case "earrings":
+            return "earrings";
+        case "Necklace":
+        case "Necklaces":
+        case "necklaces":
+            return "necklaces";
+        case "Bracelets":
+        case "bracelets":
+            return "bracelets";
+        case "Rings":
+        case "rings":
+            return "rings";
+        case "Hat":
+        case "Hats":
+        case "HeadPiece":
+        case "Hair":
+            return "hats";
+        case "Scarf":
+        case "Scarves":
+        case "scarves":
+            return "scarves";
+        case "Watches":
+        case "watches":
+            return "watches";
+        default:
+            return null;
     }
 }
 
-function listCategory(category: string) {
-    const catDir = path.join(BASE_PUBLIC_DIR, category);
-    const files = safeReadDir(catDir);
-
-    return files
-        .filter((f) => VALID_EXT.has(path.extname(f).toLowerCase()))
-        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
-        .map((file) => {
-            const ext = path.extname(file);
-            const base = path.basename(file, ext);
-
-            return {
-                id: `${category}-${base}`, // unique
-                name: prettifyName(base),
-                src: `${BASE_PUBLIC_URL}/${category}/${file}`,
-                thumb: `${BASE_PUBLIC_URL}/${category}/${file}`, // optional; same image for now
-            };
-        });
-}
-
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const category = (searchParams.get("category") || "").trim().toLowerCase();
+    try {
+        const { searchParams } = new URL(req.url);
+        const requestedCategory = (searchParams.get("category") || "").trim().toLowerCase();
 
-    // If a category is provided, return only that category
-    if (category) {
-        const items = listCategory(category);
+        const response = await fetch(API_URL, {
+            method: "GET",
+            cache: "no-store",
+            headers: {
+                Accept: "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            return Response.json(
+                {
+                    ok: false,
+                    error: `Backend request failed with status ${response.status}`,
+                },
+                { status: 502, headers: { "Cache-Control": "no-store" } }
+            );
+        }
+
+        const data = (await response.json()) as ApiItem[];
+
+        const overlays: Record<string, Array<{
+            id: string;
+            name: string;
+            src: string;
+            thumb: string;
+        }>> = {};
+
+        for (const item of data) {
+            const mappedCategory = mapBackendCategoryToFrontend(item.categoryName ?? "");
+            if (!mappedCategory) continue;
+
+            if (requestedCategory && mappedCategory !== requestedCategory) {
+                continue;
+            }
+
+            const src = item.src ?? item.url ?? item.imageUrl ?? item.image ?? "";
+            if (!src) continue;
+
+            const normalized = {
+                id: String(item.id ?? item.name ?? crypto.randomUUID()),
+                name: item.name ?? "Unnamed Item",
+                src,
+                thumb: item.thumb ?? item.thumbnail ?? src,
+            };
+
+            if (!overlays[mappedCategory]) {
+                overlays[mappedCategory] = [];
+            }
+
+            overlays[mappedCategory].push(normalized);
+        }
+
+        if (requestedCategory && !overlays[requestedCategory]) {
+            overlays[requestedCategory] = [];
+        }
 
         return Response.json(
             {
                 ok: true,
-                source: "public-folder-scan",
-                overlays: { [category]: items },
+                source: "biramy-backend",
+                overlays,
             },
-            { headers: { "Cache-Control": "no-store" } } // keep dev behavior deterministic
+            { headers: { "Cache-Control": "no-store" } }
+        );
+    } catch (error) {
+        console.error("tryon-assets route failed:", error);
+
+        const message =
+            error instanceof Error ? error.message : "Unknown route error";
+
+        return Response.json(
+            {
+                ok: false,
+                error: message,
+            },
+            { status: 500, headers: { "Cache-Control": "no-store" } }
         );
     }
-
-    // If no category, scan ALL subfolders in /public/assets/tryon/overlays
-    const subfolders = safeReadDir(BASE_PUBLIC_DIR).filter((name) => {
-        const full = path.join(BASE_PUBLIC_DIR, name);
-        try {
-            return fs.statSync(full).isDirectory();
-        } catch {
-            return false;
-        }
-    });
-
-    const overlays: Record<string, any[]> = {};
-    for (const folder of subfolders) {
-        overlays[folder] = listCategory(folder);
-    }
-
-    return Response.json(
-        {
-            ok: true,
-            source: "public-folder-scan",
-            overlays,
-        },
-        { headers: { "Cache-Control": "no-store" } }
-    );
 }
