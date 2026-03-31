@@ -21,7 +21,6 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
     const [error, setError] = useState<string | null>(null);
 
     const addLayer = useTryOnStore((s) => s.addLayer);
-    const setActiveLayer = useTryOnStore((s) => s.setActiveLayer);
     const addXP = useTryOnStore((s) => s.addXP);
     const incrementTryOnMission = useTryOnStore((s) => s.incrementTryOnMission);
 
@@ -38,11 +37,12 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
 
                 const data = await res.json();
 
-                if (!data.ok) {
+                if (!res.ok || !data.ok) {
                     throw new Error(data.error ?? "API returned ok=false");
                 }
 
-                const rawList = data.overlays?.[category] ?? [];
+                const rawList = Array.isArray(data.overlays) ? data.overlays : [];
+
                 type RawOverlayItem = {
                     id?: string | number;
                     name?: string;
@@ -54,19 +54,21 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
                     thumbnail?: string;
                 };
 
-                const list: OverlayItem[] = (rawList as RawOverlayItem[]).map((item) => ({
-                    id: String(item.id ?? item.name ?? crypto.randomUUID()),
-                    name: item.name ?? "Unnamed Item",
-                    src: item.src ?? item.url ?? item.imageUrl ?? item.image ?? "",
-                    thumb:
-                        item.thumb ??
-                        item.thumbnail ??
-                        item.src ??
-                        item.url ??
-                        item.imageUrl ??
-                        item.image ??
-                        "",
-                }));
+                const list: OverlayItem[] = (rawList as RawOverlayItem[])
+                    .map((item) => ({
+                        id: String(item.id ?? item.name ?? crypto.randomUUID()),
+                        name: item.name ?? "Unnamed Item",
+                        src: item.src ?? item.url ?? item.imageUrl ?? item.image ?? "",
+                        thumb:
+                            item.thumb ??
+                            item.thumbnail ??
+                            item.src ??
+                            item.url ??
+                            item.imageUrl ??
+                            item.image ??
+                            "",
+                    }))
+                    .filter((item) => item.src);
 
                 if (!cancelled) {
                     setItems(list);
@@ -74,7 +76,10 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
                 }
             } catch (e: unknown) {
                 const message = e instanceof Error ? e.message : "Fetch failed";
-                if (!cancelled) setError(message);
+                if (!cancelled) {
+                    setItems([]);
+                    setError(message);
+                }
             }
         }
 
@@ -102,7 +107,6 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
                 if (!chosen) return;
 
                 addLayer(chosen, category);
-                setActiveLayer(chosen.id);
                 addXP(10);
                 incrementTryOnMission();
             }}

@@ -1,52 +1,65 @@
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-type ApiItem = {
+const API_URL = "https://biramyapi.azure-api.net/api/items";
+const API_TOKEN = process.env.BRIANY_API_TOKEN ?? "03b624f785954731958df20046afccbc";
+
+type RawItem = {
     id?: string | number;
     name?: string;
+    title?: string;
+    image?: string;
+    imageUrl?: string;
     url?: string;
     src?: string;
-    imageUrl?: string;
-    image?: string;
-    thumb?: string;
     thumbnail?: string;
+    thumb?: string;
+    category?: string;
+    type?: string;
     categoryName?: string;
+    categoryID?: number;
+    [key: string]: unknown;
 };
 
-const API_URL = "http://70.26.226.162:7124/biramy/api/GetItems";
+type OverlayItem = {
+    id: string;
+    name: string;
+    src: string;
+    thumb?: string;
+};
 
-function mapBackendCategoryToFrontend(categoryName: string): string | null {
-    const value = categoryName.trim();
+function normaliseCategory(value: unknown): string | null {
+    if (typeof value !== "string") return null;
 
-    switch (value) {
-        case "Glasses":
+    const v = value.trim().toLowerCase();
+
+    switch (v) {
+        case "glasses":
             return "glasses";
-        case "Sunglasses":
+        case "sunglasses":
             return "sunglasses";
-        case "Earrings":
         case "earrings":
             return "earrings";
-        case "Necklace":
-        case "Necklaces":
+        case "necklace":
         case "necklaces":
             return "necklaces";
-        case "Bracelets":
+        case "bracelet":
         case "bracelets":
             return "bracelets";
-        case "Rings":
+        case "ring":
         case "rings":
             return "rings";
-        case "Hat":
-        case "Hats":
-        case "HeadPiece":
-        case "Hair":
+        case "hat":
+        case "hats":
+        case "hair":
+        case "headpiece":
             return "hats";
-        case "Scarf":
-        case "Scarves":
+        case "scarf":
         case "scarves":
             return "scarves";
-        case "Watches":
+        case "watch":
         case "watches":
             return "watches";
         default:
@@ -54,87 +67,116 @@ function mapBackendCategoryToFrontend(categoryName: string): string | null {
     }
 }
 
+function mapItem(item: RawItem, index: number): { category: string; overlay: OverlayItem } | null {
+    const src =
+        typeof item.url === "string" && item.url.trim()
+            ? item.url.trim()
+            : typeof item.src === "string" && item.src.trim()
+                ? item.src.trim()
+                : typeof item.imageUrl === "string" && item.imageUrl.trim()
+                    ? item.imageUrl.trim()
+                    : typeof item.image === "string" && item.image.trim()
+                        ? item.image.trim()
+                        : null;
+
+    if (!src) return null;
+
+    const category = normaliseCategory(item.categoryName ?? item.category ?? item.type);
+    if (!category) return null;
+
+    return {
+        category,
+        overlay: {
+            id: String(item.id ?? `${category}-${index}`),
+            name:
+                (typeof item.name === "string" && item.name.trim()) ||
+                (typeof item.title === "string" && item.title.trim()) ||
+                `${category}-${index + 1}`,
+            src,
+            thumb:
+                typeof item.thumbnail === "string" && item.thumbnail.trim()
+                    ? item.thumbnail.trim()
+                    : typeof item.thumb === "string" && item.thumb.trim()
+                        ? item.thumb.trim()
+                        : src,
+        },
+    };
+}
+
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
-        const requestedCategory = (searchParams.get("category") || "").trim().toLowerCase();
+        const requestedCategory = searchParams.get("category")?.toLowerCase() ?? null;
 
         const response = await fetch(API_URL, {
             method: "GET",
             cache: "no-store",
             headers: {
                 Accept: "application/json",
+                "Ocp-Apim-Subscription-Key": API_TOKEN,
             },
         });
 
         if (!response.ok) {
-            return Response.json(
+            const text = await response.text();
+            return NextResponse.json(
                 {
                     ok: false,
-                    error: `Backend request failed with status ${response.status}`,
+                    error: `Azure API request failed: ${response.status} ${response.statusText}`,
+                    details: text,
                 },
-                { status: 502, headers: { "Cache-Control": "no-store" } }
+                { status: 502 }
             );
         }
 
-        const data = (await response.json()) as ApiItem[];
+        const data = await response.json();
 
-        const overlays: Record<string, Array<{
-            id: string;
-            name: string;
-            src: string;
-            thumb: string;
-        }>> = {};
+        const rawItems: RawItem[] = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.items)
+                ? data.items
+                : Array.isArray(data?.value)
+                    ? data.value
+                    : Array.isArray(data?.results)
+                        ? data.results
+                        : [];
 
-        for (const item of data) {
-            const mappedCategory = mapBackendCategoryToFrontend(item.categoryName ?? "");
-            if (!mappedCategory) continue;
+        const overlaysByCategory: Record<string, OverlayItem[]> = {};
 
-            if (requestedCategory && mappedCategory !== requestedCategory) {
-                continue;
+        rawItems.forEach((item, index) => {
+            const mapped = mapItem(item, index);
+            if (!mapped) return;
+
+            if (!overlaysByCategory[mapped.category]) {
+                overlaysByCategory[mapped.category] = [];
             }
 
-            const src = item.src ?? item.url ?? item.imageUrl ?? item.image ?? "";
-            if (!src) continue;
+            overlaysByCategory[mapped.category].push(mapped.overlay);
+        });
 
-            const normalized = {
-                id: String(item.id ?? item.name ?? crypto.randomUUID()),
-                name: item.name ?? "Unnamed Item",
-                src,
-                thumb: item.thumb ?? item.thumbnail ?? src,
-            };
-
-            if (!overlays[mappedCategory]) {
-                overlays[mappedCategory] = [];
-            }
-
-            overlays[mappedCategory].push(normalized);
-        }
-
-        if (requestedCategory && !overlays[requestedCategory]) {
-            overlays[requestedCategory] = [];
-        }
-
-        return Response.json(
-            {
+        if (requestedCategory) {
+            return NextResponse.json({
                 ok: true,
-                source: "biramy-backend",
-                overlays,
-            },
-            { headers: { "Cache-Control": "no-store" } }
-        );
+                overlays: overlaysByCategory[requestedCategory] ?? [],
+            });
+        }
+
+        return NextResponse.json({
+            ok: true,
+            overlays: overlaysByCategory,
+        });
     } catch (error) {
-        console.error("tryon-assets route failed:", error);
+        console.error("tryon-assets GET failed:", error);
 
         const message =
             error instanceof Error ? error.message : "Unknown route error";
 
-        return Response.json(
+        return NextResponse.json(
             {
                 ok: false,
                 error: message,
             },
-            { status: 500, headers: { "Cache-Control": "no-store" } }
+            { status: 500 }
         );
     }
 }

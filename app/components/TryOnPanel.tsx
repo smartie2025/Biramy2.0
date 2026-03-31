@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useTryOnStore } from "../store/tryon";
-import { OVERLAYS } from "../lib/asset-manifest";
 
 export default function TryOnPanel() {
     const {
@@ -18,17 +17,14 @@ export default function TryOnPanel() {
         layers[layers.length - 1] ||
         null;
 
-    // Build a little info bundle for the list UI
     const layerInfos = layers.map((layer) => {
-        const info = OVERLAYS.find((o) => o.id === layer.id);
         return {
             layer,
-            name: info?.name ?? layer.id,
-            category: info?.category ?? "",
+            name: layer.asset.name ?? layer.asset.id,
+            category: layer.category,
         };
     });
 
-    // Slider handlers – no-ops if there is no active layer
     const handleChangeX = (v: number) => {
         if (!activeLayer) return;
         updateLayer(activeLayer.id, { x: v });
@@ -51,8 +47,7 @@ export default function TryOnPanel() {
 
     const handleChangeRotationDeg = (deg: number) => {
         if (!activeLayer) return;
-        const rad = (deg * Math.PI) / 180;
-        updateLayer(activeLayer.id, { rotation: rad });
+        updateLayer(activeLayer.id, { rotation: deg });
     };
 
     const handleChangeOpacity = (v: number) => {
@@ -77,11 +72,10 @@ export default function TryOnPanel() {
         removeLayer(activeLayer.id);
     };
 
-    const rotationDeg = activeLayer ? (activeLayer.rotation * 180) / Math.PI : 0;
+    const rotationDeg = activeLayer ? activeLayer.rotation : 0;
 
     return (
         <aside className="bg-slate-900/80 rounded-2xl border border-slate-800 p-4 space-y-6">
-            {/* LAYERS LIST */}
             <section>
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">
@@ -141,7 +135,6 @@ export default function TryOnPanel() {
                 </div>
             </section>
 
-            {/* ADJUSTMENTS */}
             <section>
                 <h2 className="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase mb-3">
                     Adjustments
@@ -154,7 +147,6 @@ export default function TryOnPanel() {
                     </div>
                 ) : (
                     <div className="space-y-3 text-xs">
-                        {/* Position X */}
                         <div>
                             <div className="flex justify-between mb-1">
                                 <span className="text-slate-300">Position X</span>
@@ -171,7 +163,6 @@ export default function TryOnPanel() {
                             />
                         </div>
 
-                        {/* Position Y */}
                         <div>
                             <div className="flex justify-between mb-1">
                                 <span className="text-slate-300">Position Y</span>
@@ -188,7 +179,6 @@ export default function TryOnPanel() {
                             />
                         </div>
 
-                        {/* Depth Z */}
                         <div>
                             <div className="flex justify-between mb-1">
                                 <span className="text-slate-300">Depth (Z)</span>
@@ -207,7 +197,6 @@ export default function TryOnPanel() {
                             />
                         </div>
 
-                        {/* Scale */}
                         <div>
                             <div className="flex justify-between mb-1">
                                 <span className="text-slate-300">Scale</span>
@@ -226,7 +215,6 @@ export default function TryOnPanel() {
                             />
                         </div>
 
-                        {/* Rotation */}
                         <div>
                             <div className="flex justify-between mb-1">
                                 <span className="text-slate-300">Rotation (°)</span>
@@ -247,7 +235,6 @@ export default function TryOnPanel() {
                             />
                         </div>
 
-                        {/* Opacity */}
                         <div>
                             <div className="flex justify-between mb-1">
                                 <span className="text-slate-300">Opacity</span>

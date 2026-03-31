@@ -3,8 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\FaceTryOn.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\components\\FaceTryOn.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\(app)\\try-on\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\(app)\\try-on\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\OverlayPicker.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\components\\OverlayPicker.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\store\\tryon.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\store\\tryon.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\AssetDropdown.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
@@ -22,11 +30,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "TryOnPanel.tsx",
               "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\TryOnPanel.tsx",
               "RelativeDocumentMoniker": "app\\components\\TryOnPanel.tsx",
@@ -35,34 +43,7 @@
               "ViewState": "AgIAAAQBAAAAAAAAAAAqwBkBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
               "WhenOpened": "2026-03-28T15:24:38.655Z",
-              "IsPinned": true,
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "FaceTryOn.tsx",
-              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\FaceTryOn.tsx",
-              "RelativeDocumentMoniker": "app\\components\\FaceTryOn.tsx",
-              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\FaceTryOn.tsx",
-              "RelativeToolTip": "app\\components\\FaceTryOn.tsx",
-              "ViewState": "AgIAAIUAAAAAAAAAAAAWwJgAAAAQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-03-28T17:30:06.514Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "AssetDropdown.tsx",
-              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\AssetDropdown.tsx",
-              "RelativeDocumentMoniker": "app\\components\\AssetDropdown.tsx",
-              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\AssetDropdown.tsx",
-              "RelativeToolTip": "app\\components\\AssetDropdown.tsx",
-              "ViewState": "AgIAAE0AAAAAAAAAAAAmwF8AAAAeAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-03-28T17:23:40.39Z",
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Bookmark",
@@ -71,6 +52,55 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "page.tsx",
+              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\(app)\\try-on\\page.tsx",
+              "RelativeDocumentMoniker": "app\\(app)\\try-on\\page.tsx",
+              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\(app)\\try-on\\page.tsx*",
+              "RelativeToolTip": "app\\(app)\\try-on\\page.tsx*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-03-29T19:08:36.794Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "tryon.ts",
+              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\store\\tryon.ts",
+              "RelativeDocumentMoniker": "app\\store\\tryon.ts",
+              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\store\\tryon.ts",
+              "RelativeToolTip": "app\\store\\tryon.ts",
+              "ViewState": "AgIAAKQAAAAAAAAAAAAowNQAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-03-29T18:30:09.579Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AssetDropdown.tsx",
+              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\AssetDropdown.tsx",
+              "RelativeDocumentMoniker": "app\\components\\AssetDropdown.tsx",
+              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\AssetDropdown.tsx",
+              "RelativeToolTip": "app\\components\\AssetDropdown.tsx",
+              "ViewState": "AgIAAE0AAAAAAAAAAAAAwGkAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-03-29T17:07:54.723Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "OverlayPicker.tsx",
+              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\OverlayPicker.tsx",
+              "RelativeDocumentMoniker": "app\\components\\OverlayPicker.tsx",
+              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\OverlayPicker.tsx",
+              "RelativeToolTip": "app\\components\\OverlayPicker.tsx",
+              "ViewState": "AgIAAF8AAAAAAAAAAAAowI8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
+              "WhenOpened": "2026-03-29T17:05:34.459Z"
             }
           ]
         }

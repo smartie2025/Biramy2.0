@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Category } from "./CategoryTabs";
 import { useTryOnStore } from "../store/tryon";
 
 import {
@@ -20,7 +19,6 @@ type OverlayItem = {
 
 type FaceTryOnProps = {
     selectedOverlay?: OverlayItem | null;
-    category: Category;
 };
 
 type Smoothed = { x: number; y: number; scale: number; rotation: number };
@@ -55,6 +53,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
     const streamRef = useRef<MediaStream | null>(null);
     const smoothRef = useRef<Smoothed | null>(null);
     const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
+    const visibleLayersRef = useRef<ReturnType<typeof useTryOnStore.getState>["layers"]>([]);
 
     const layers = useTryOnStore((s) => s.layers);
     const xp = useTryOnStore((s) => s.xp);
@@ -64,9 +63,13 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
     const tryMission = missions.find((m) => m.id === "try-3-items");
 
     const visibleLayers = useMemo(
-        () => layers.filter((layer) => !!layer.asset?.src),
+        () => layers.filter((layer) => !!layer.asset?.src && layer.visible !== false),
         [layers]
     );
+
+    useEffect(() => {
+        visibleLayersRef.current = visibleLayers;
+    }, [visibleLayers]);
 
     const stopCamera = () => {
         cancelAnimationFrame(rafRef.current);
@@ -134,6 +137,8 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
         let cancelled = false;
 
         const start = async () => {
+            if (streamRef.current) return;
+
             try {
                 setStatus("loading");
 
@@ -190,15 +195,29 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                             rotation: glassesAnchor.rotation,
                         };
 
-                        const baseT = (smoothRef.current = smoothTransform(smoothRef.current, next, 0.22));
+                        const baseT = (smoothRef.current = smoothTransform(
+                            smoothRef.current,
+                            next,
+                            0.22
+                        ));
 
-                        for (const layer of visibleLayers) {
+                        for (const layer of visibleLayersRef.current) {
                             const img = imageCacheRef.current[layer.asset.id];
                             if (!img || !img.complete) continue;
 
                             if (layer.category === "earrings") {
-                                const leftAnchor = getEarringPosition(landmarks, "left", c.width, c.height);
-                                const rightAnchor = getEarringPosition(landmarks, "right", c.width, c.height);
+                                const leftAnchor = getEarringPosition(
+                                    landmarks,
+                                    "left",
+                                    c.width,
+                                    c.height
+                                );
+                                const rightAnchor = getEarringPosition(
+                                    landmarks,
+                                    "right",
+                                    c.width,
+                                    c.height
+                                );
 
                                 const leftT: Smoothed = {
                                     x: leftAnchor.x + layer.x,
@@ -224,7 +243,10 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                                     rotation: baseT.rotation + layer.rotation,
                                 };
 
-                                if (layer.category === "glasses" || layer.category === "sunglasses") {
+                                if (
+                                    layer.category === "glasses" ||
+                                    layer.category === "sunglasses"
+                                ) {
                                     drawOverlayImage(ctx, img, t, 1.15, 0.45, layer.opacity);
                                 } else {
                                     drawOverlayImage(ctx, img, t, 0.9, 0.9, layer.opacity);
@@ -251,9 +273,13 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
         return () => {
             cancelled = true;
             cancelAnimationFrame(rafRef.current);
-            if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach((t) => t.stop());
+                streamRef.current = null;
+            }
         };
-    }, [started, visibleLayers]);
+    }, [started]);
 
     return (
         <div className="w-full max-w-lg mx-auto">
@@ -277,7 +303,12 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
             </div>
 
             <div className="relative w-full overflow-hidden rounded-2xl shadow">
-                <video ref={videoRef} className="w-full h-auto transform scale-x-[-1]" playsInline muted />
+                <video
+                    ref={videoRef}
+                    className="w-full h-auto transform scale-x-[-1]"
+                    playsInline
+                    muted
+                />
                 <canvas
                     ref={canvasRef}
                     className="absolute inset-0 w-full h-full pointer-events-none transform scale-x-[-1]"
@@ -293,7 +324,9 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
 
             <div className="mt-2 text-xs">
                 Selected overlay:{" "}
-                <span className="font-semibold">{selectedOverlay ? selectedOverlay.name : "none"}</span>
+                <span className="font-semibold">
+                    {selectedOverlay ? selectedOverlay.name : "none"}
+                </span>
             </div>
 
             <div className="mt-2 text-xs">
@@ -305,7 +338,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                 Visible layers:{" "}
                 <span className="font-semibold">
                     {visibleLayers.length > 0
-                        ? visibleLayers.map((l) => `${l.asset.name}`).join(" | ")
+                        ? visibleLayers.map((l) => l.asset.name).join(" | ")
                         : "none"}
                 </span>
             </div>

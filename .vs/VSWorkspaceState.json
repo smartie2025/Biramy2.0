@@ -1,6 +1,7 @@
 {
   "ExpandedNodes": [
     "",
+    "\\.github",
     "\\app",
     "\\app\\(app)",
     "\\app\\(app)\\try-on",
@@ -10,6 +11,6 @@
     "\\app\\lib",
     "\\app\\store"
   ],
-  "SelectedNode": "\\app\\api\\tryon-assets\\route.ts",
+  "SelectedNode": "\\tsconfig.json",
   "PreviewInSolutionExplorer": false
 }

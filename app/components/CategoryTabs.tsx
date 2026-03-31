@@ -30,16 +30,17 @@ const TABS: { key: Category; label: string }[] = [
 
 export default function CategoryTabs({ value, onChange }: Props) {
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white/90 backdrop-blur">
-            <div className="mx-auto flex max-w-lg gap-1 overflow-x-auto px-2 py-2">
+        <div className="w-full overflow-x-auto">
+            <div className="flex gap-2 min-w-max">
                 {TABS.map((t) => {
                     const active = t.key === value;
                     return (
                         <button
                             key={t.key}
+                            type="button"
                             onClick={() => onChange(t.key)}
                             className={[
-                                "shrink-0 rounded-full px-3 py-2 text-sm",
+                                "shrink-0 rounded-full px-3 py-2 text-sm transition",
                                 active
                                     ? "bg-slate-900 text-white"
                                     : "bg-slate-100 text-slate-700 hover:bg-slate-200",

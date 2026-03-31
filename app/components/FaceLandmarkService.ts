@@ -18,6 +18,7 @@ export interface DetectionResult {
 
 let faceLandmarker: FaceLandmarker | null = null;
 let initPromise: Promise<FaceLandmarker> | null = null;
+let hasLoggedDetectionWarning = false;
 
 export const initializeFaceLandmarker = async (): Promise<FaceLandmarker> => {
     if (faceLandmarker) return faceLandmarker;
@@ -68,7 +69,6 @@ export const detectFaceLandmarks = (
         return { landmarks: null, faceDetected: false };
     }
 
-    // Guard against calling detectForVideo too early
     if (
         !videoElement ||
         videoElement.readyState < 2 ||
@@ -90,7 +90,6 @@ export const detectFaceLandmarks = (
 
         const allLandmarks = results.faceLandmarks[0];
 
-        // Safety check
         if (!allLandmarks || allLandmarks.length < 455) {
             return { landmarks: null, faceDetected: false };
         }
@@ -162,9 +161,15 @@ export const detectFaceLandmarks = (
             faceHeight,
         };
 
+        hasLoggedDetectionWarning = false;
+
         return { landmarks, faceDetected: true };
     } catch (error) {
-        console.error("Error detecting face landmarks:", error);
+        if (!hasLoggedDetectionWarning) {
+            console.warn("Face landmark detection skipped for a frame.", error);
+            hasLoggedDetectionWarning = true;
+        }
+
         return { landmarks: null, faceDetected: false };
     }
 };

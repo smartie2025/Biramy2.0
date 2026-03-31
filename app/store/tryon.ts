@@ -28,6 +28,7 @@ export type LayerState = {
     scale: number;
     rotation: number; // degrees
     opacity: number;
+    visible: boolean;
 };
 
 export type MissionProgress = {
@@ -55,6 +56,7 @@ type TryOnState = {
     setActiveLayer: (id: string | null) => void;
     updateLayer: (id: string, patch: Partial<LayerState>) => void;
     clearAllLayers: () => void;
+    toggleLayerVisibility: (id: string) => void;
 
     setCategory: (c: Category | null) => void;
     setOverlays: (c: Category, items: OverlayItem[]) => void;
@@ -101,29 +103,40 @@ export const useTryOnStore = create<TryOnState>((set) => ({
     ],
 
     addLayer: (item, category) =>
-        set((s) => ({
-            layers: [
-                ...s.layers,
-                {
-                    id: item.id,
-                    asset: item,
-                    category,
-                    x: 0,
-                    y: 0,
-                    z: 0,
-                    scale: 1,
-                    rotation: 0,
-                    opacity: 0.95,
-                },
-            ],
-            activeLayerId: item.id,
-        })),
+        set((s) => {
+            const layerId = `${category}-${item.id}-${Date.now()}`;
+
+            return {
+                layers: [
+                    ...s.layers,
+                    {
+                        id: layerId,
+                        asset: item,
+                        category,
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                        scale: 1,
+                        rotation: 0,
+                        opacity: 0.95,
+                        visible: true,
+                    },
+                ],
+                activeLayerId: layerId,
+            };
+        }),
 
     removeLayer: (id) =>
-        set((s) => ({
-            layers: s.layers.filter((l) => l.id !== id),
-            activeLayerId: s.activeLayerId === id ? null : s.activeLayerId,
-        })),
+        set((s) => {
+            const nextLayers = s.layers.filter((l) => l.id !== id);
+            const nextActive =
+                s.activeLayerId === id ? nextLayers.at(-1)?.id ?? null : s.activeLayerId;
+
+            return {
+                layers: nextLayers,
+                activeLayerId: nextActive,
+            };
+        }),
 
     setActiveLayer: (id) => set({ activeLayerId: id }),
 
@@ -133,6 +146,13 @@ export const useTryOnStore = create<TryOnState>((set) => ({
         })),
 
     clearAllLayers: () => set({ layers: [], activeLayerId: null }),
+
+    toggleLayerVisibility: (id) =>
+        set((s) => ({
+            layers: s.layers.map((l) =>
+                l.id === id ? { ...l, visible: !l.visible } : l
+            ),
+        })),
 
     setCategory: (c) => set({ category: c }),
 
