@@ -42,7 +42,7 @@ export default function Hero() {
 
                     <div className="mt-6 flex flex-wrap gap-4">
                         <Link
-                            href="/tryon"
+                            href="/try-on"
                             className="rounded-lg bg-black px-6 py-3 font-semibold text-white transition hover:bg-gray-800"
                         >
                             START YOUR AR EXPERIENCE →
@@ -148,19 +148,33 @@ export default function Hero() {
                                 >
                                     ER
                                 </button>
-                                <button
-                                    aria-label="Top look"
-                                    className="h-10 w-10 rounded-full border border-white/45 bg-white/58 text-[10px] text-slate-700/75 shadow-sm backdrop-blur"
-                                >
-                                    ✦
-                                </button>
                             </div>
+                            {/*<div className="absolute right-5 top-52 z-20 flex flex-col gap-3">*/}
+                            {/*    <button*/}
+                            {/*        aria-label="Glasses"*/}
+                            {/*        className="h-10 w-10 rounded-full border border-white/45 bg-white/58 text-[9px] font-medium tracking-[0.14em] text-slate-700/75 shadow-sm backdrop-blur"*/}
+                            {/*    >*/}
+                            {/*        GL*/}
+                            {/*    </button>*/}
+                            {/*    <button*/}
+                            {/*        aria-label="Earrings"*/}
+                            {/*        className="h-10 w-10 rounded-full border border-white/45 bg-white/58 text-[9px] font-medium tracking-[0.14em] text-slate-700/75 shadow-sm backdrop-blur"*/}
+                            {/*    >*/}
+                            {/*        ER*/}
+                            {/*    </button>*/}
+                            {/*    <button*/}
+                            {/*        aria-label="Top look"*/}
+                            {/*        className="h-10 w-10 rounded-full border border-white/45 bg-white/58 text-[10px] text-slate-700/75 shadow-sm backdrop-blur"*/}
+                            {/*    >*/}
+                            {/*        ✦*/}
+                            {/*    </button>*/}
+                            {/*</div>*/}
 
                             {/* featured copy */}
                             <div className="absolute inset-x-0 bottom-56 z-20 px-6">
                                 <div className="max-w-[78%] rounded-[1.6rem] border border-white/50 bg-white/24 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-md">
                                     <div className="flex items-start justify-between gap-3">
-                                        <div>
+                                        <div>{/* right side category chips */}
                                             <div className="text-[10px] font-semibold tracking-[0.34em] text-white/88">
                                                 LOOK OF THE DAY
                                             </div>
@@ -185,7 +199,7 @@ export default function Hero() {
                                         </div>
 
                                         <button
-                                            onClick={() => router.push("/tryon")}
+                                            onClick={() => router.push("/try-on?look=midnight-starlight&src=hero")}
                                             className="rounded-full bg-slate-900 px-4 py-2.5 text-[11px] font-semibold tracking-[0.18em] text-white transition hover:bg-slate-800"
                                         >
                                             TRY THE LOOK
@@ -223,7 +237,7 @@ export default function Hero() {
                             {/*    />*/}
                             {/*    <button*/}
                             {/*        aria-label="Open Try On"*/}
-                            {/*        onClick={() => router.push("/tryon")}*/}
+                            {/*        onClick={() => router.push("/try-on")}*/}
                             {/*        className="h-14 w-14 rounded-full border border-transparent bg-gradient-to-br from-orange-400 to-rose-400 shadow-[0_10px_30px_rgba(251,113,133,0.35)]"*/}
                             {/*    />*/}
                             {/*    <button*/}

@@ -50,6 +50,7 @@ type TryOnState = {
     level: number;
     collectibles: string[];
     missions: MissionProgress[];
+    claimedLookRewardIds: string[];
 
     addLayer: (item: OverlayItem, category: Category) => void;
     removeLayer: (id: string) => void;
@@ -63,11 +64,45 @@ type TryOnState = {
 
     addXP: (amount: number) => void;
     incrementTryOnMission: () => void;
+    incrementMission: (missionId: string, amount?: number) => void;
+    claimLookReward: (lookId: string, amount: number, missionId?: string) => void;
     addCollectible: (name: string) => void;
 };
 
 function calculateLevel(xp: number): number {
     return Math.floor(xp / 100) + 1;
+}
+
+function progressMission(
+    missions: MissionProgress[],
+    missionId: string,
+    amount = 1
+): { missions: MissionProgress[]; awardedXp: number } {
+    const updatedMissions = missions.map((mission) => {
+        if (mission.id !== missionId || mission.completed) {
+            return mission;
+        }
+
+        const nextCurrent = mission.current + amount;
+        const clampedCurrent = Math.min(nextCurrent, mission.target);
+        const justCompleted = clampedCurrent >= mission.target;
+
+        return {
+            ...mission,
+            current: clampedCurrent,
+            completed: justCompleted,
+        };
+    });
+
+    const before = missions.find((m) => m.id === missionId);
+    const after = updatedMissions.find((m) => m.id === missionId);
+
+    let awardedXp = 0;
+    if (before && after && !before.completed && after.completed) {
+        awardedXp = after.xpReward;
+    }
+
+    return { missions: updatedMissions, awardedXp };
 }
 
 export const useTryOnStore = create<TryOnState>((set) => ({
@@ -91,6 +126,8 @@ export const useTryOnStore = create<TryOnState>((set) => ({
     xp: 0,
     level: 1,
     collectibles: [],
+    claimedLookRewardIds: [],
+
     missions: [
         {
             id: "try-3-items",
@@ -99,6 +136,14 @@ export const useTryOnStore = create<TryOnState>((set) => ({
             target: 3,
             completed: false,
             xpReward: 50,
+        },
+        {
+            id: "try-look-of-the-day",
+            title: "Try Look of the Day",
+            current: 0,
+            target: 1,
+            completed: false,
+            xpReward: 0,
         },
     ],
 
@@ -172,33 +217,48 @@ export const useTryOnStore = create<TryOnState>((set) => ({
 
     incrementTryOnMission: () =>
         set((s) => {
-            const updatedMissions = s.missions.map((mission) => {
-                if (mission.id !== "try-3-items" || mission.completed) {
-                    return mission;
-                }
-
-                const nextCurrent = mission.current + 1;
-                const justCompleted = nextCurrent >= mission.target;
-
-                return {
-                    ...mission,
-                    current: Math.min(nextCurrent, mission.target),
-                    completed: justCompleted,
-                };
-            });
-
-            const before = s.missions.find((m) => m.id === "try-3-items");
-            const after = updatedMissions.find((m) => m.id === "try-3-items");
-
-            let bonusXp = 0;
-            if (before && after && !before.completed && after.completed) {
-                bonusXp = after.xpReward;
-            }
-
-            const newXp = s.xp + bonusXp;
+            const { missions, awardedXp } = progressMission(s.missions, "try-3-items");
+            const newXp = s.xp + awardedXp;
 
             return {
-                missions: updatedMissions,
+                missions,
+                xp: newXp,
+                level: calculateLevel(newXp),
+            };
+        }),
+
+    incrementMission: (missionId, amount = 1) =>
+        set((s) => {
+            const { missions, awardedXp } = progressMission(s.missions, missionId, amount);
+            const newXp = s.xp + awardedXp;
+
+            return {
+                missions,
+                xp: newXp,
+                level: calculateLevel(newXp),
+            };
+        }),
+
+    claimLookReward: (lookId, amount, missionId) =>
+        set((s) => {
+            if (s.claimedLookRewardIds.includes(lookId)) {
+                return {};
+            }
+
+            let missions = s.missions;
+            let bonusMissionXp = 0;
+
+            if (missionId) {
+                const result = progressMission(s.missions, missionId);
+                missions = result.missions;
+                bonusMissionXp = result.awardedXp;
+            }
+
+            const newXp = s.xp + amount + bonusMissionXp;
+
+            return {
+                claimedLookRewardIds: [...s.claimedLookRewardIds, lookId],
+                missions,
                 xp: newXp,
                 level: calculateLevel(newXp),
             };
