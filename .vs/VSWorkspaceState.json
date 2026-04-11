@@ -11,6 +11,6 @@
     "\\app\\lib",
     "\\app\\store"
   ],
-  "SelectedNode": "\\tsconfig.json",
+  "SelectedNode": "\\app\\components\\CategoryTabs.tsx",
   "PreviewInSolutionExplorer": false
 }
