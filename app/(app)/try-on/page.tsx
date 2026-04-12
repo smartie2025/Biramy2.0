@@ -1,13 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import FaceTryOn from "../../components/FaceTryOn";
 import AssetDropdown, { type OverlayItem } from "../../components/AssetDropdown";
 import CategoryTabs, { type Category } from "../../components/CategoryTabs";
+import type { PanelAlert } from "../../components/TryOnPanel";
 import TryOnPanel from "../../components/TryOnPanel";
 import { LOOK_OF_THE_DAY } from "../../lib/lookOfDay";
-import { useTryOnStore } from "../../store/tryon"; // if your file is tryOn.ts, match that exact casing
+import { useTryOnStore } from "../../store/tryon";
+
+type RawOverlayItem = {
+    id?: string | number;
+    name?: string;
+    src?: string;
+    url?: string;
+    imageUrl?: string;
+    image?: string;
+    thumb?: string;
+    thumbnail?: string;
+};
+
+function normalizeText(value: string): string {
+    return value.trim().toLowerCase().replace(/\s+/g, "-");
+}
 
 function getOverlayListFromResponse(
     data: unknown,
@@ -24,6 +40,8 @@ function getOverlayListFromResponse(
         };
     };
 
+    let rawList: RawOverlayItem[] = [];
+
     const candidates = [
         obj.overlays,
         obj.assets,
@@ -33,7 +51,8 @@ function getOverlayListFromResponse(
 
     for (const candidate of candidates) {
         if (Array.isArray(candidate)) {
-            return candidate as OverlayItem[];
+            rawList = candidate as RawOverlayItem[];
+            break;
         }
 
         if (
@@ -41,18 +60,34 @@ function getOverlayListFromResponse(
             typeof candidate === "object" &&
             Array.isArray((candidate as Record<string, unknown>)[category])
         ) {
-            return (candidate as Record<string, OverlayItem[]>)[category];
+            rawList = (candidate as Record<string, RawOverlayItem[]>)[category];
+            break;
         }
     }
 
-    return [];
+    return rawList
+        .map((item) => ({
+            id: String(item.id ?? item.name ?? crypto.randomUUID()),
+            name: item.name ?? "Unnamed Item",
+            src: item.src ?? item.url ?? item.imageUrl ?? item.image ?? "",
+            thumb:
+                item.thumb ??
+                item.thumbnail ??
+                item.src ??
+                item.url ??
+                item.imageUrl ??
+                item.image ??
+                "",
+        }))
+        .filter((item) => item.src);
 }
 
-export default function Page() {
+function TryOnPageInner() {
     const searchParams = useSearchParams();
 
     const [category, setCategory] = useState<Category>("glasses");
     const [selected, setSelected] = useState<OverlayItem | null>(null);
+    const [alerts, setAlerts] = useState<PanelAlert[]>([]);
 
     const setStoreCategory = useTryOnStore((s) => s.setCategory);
     const setOverlays = useTryOnStore((s) => s.setOverlays);
@@ -63,6 +98,9 @@ export default function Page() {
     const addCollectible = useTryOnStore((s) => s.addCollectible);
 
     const appliedLookRef = useRef<string | null>(null);
+    const clearAlertsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+        null
+    );
 
     useEffect(() => {
         const lookId = searchParams.get("look");
@@ -119,11 +157,27 @@ export default function Page() {
                 let firstMatchedOverlay: OverlayItem | null = null;
 
                 for (const lookItem of LOOK_OF_THE_DAY.items) {
-                    const match = (overlayMap[lookItem.category] ?? []).find(
-                        (item) => item.id === lookItem.assetId
-                    );
+                    const desiredId = normalizeText(lookItem.assetId);
 
-                    if (!match) continue;
+                    const match = (overlayMap[lookItem.category] ?? []).find((item) => {
+                        const itemId = normalizeText(item.id);
+                        const itemName = normalizeText(item.name ?? "");
+                        const itemSrc = (item.src ?? "").toLowerCase();
+
+                        return (
+                            itemId === desiredId ||
+                            itemName === desiredId ||
+                            itemSrc.includes(lookItem.assetId.toLowerCase())
+                        );
+                    });
+
+                    if (!match) {
+                        console.warn("Look of the Day item not matched:", {
+                            lookItem,
+                            availableItems: overlayMap[lookItem.category] ?? [],
+                        });
+                        continue;
+                    }
 
                     addLayer(match, lookItem.category);
                     incrementTryOnMission();
@@ -144,6 +198,29 @@ export default function Page() {
                 );
 
                 addCollectible(`Look of the Day: ${LOOK_OF_THE_DAY.title}`);
+
+                setAlerts([
+                    {
+                        id: "look-xp",
+                        tone: "xp",
+                        title: `+${LOOK_OF_THE_DAY.rewardXp} XP`,
+                        text: `${LOOK_OF_THE_DAY.title} activated`,
+                    },
+                    {
+                        id: "look-mission",
+                        tone: "success",
+                        title: "Mission complete",
+                        text: "Tried Look of the Day",
+                    },
+                ]);
+
+                if (clearAlertsTimeoutRef.current) {
+                    clearTimeout(clearAlertsTimeoutRef.current);
+                }
+
+                clearAlertsTimeoutRef.current = setTimeout(() => {
+                    setAlerts([]);
+                }, 4000);
 
                 appliedLookRef.current = lookId;
             } catch (error) {
@@ -166,6 +243,14 @@ export default function Page() {
         setOverlays,
         setStoreCategory,
     ]);
+
+    useEffect(() => {
+        return () => {
+            if (clearAlertsTimeoutRef.current) {
+                clearTimeout(clearAlertsTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return (
         <main className="p-4 pb-24">
@@ -197,8 +282,25 @@ export default function Page() {
                     </button>
                 </div>
 
-                <TryOnPanel />
+                <TryOnPanel alerts={alerts} />
             </div>
         </main>
+    );
+}
+
+export default function Page() {
+    return (
+        <Suspense
+            fallback={
+                <main className="p-4 pb-24">
+                    <h1 className="mb-4 text-2xl font-bold">Try On</h1>
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
+                        Loading try-on experience…
+                    </div>
+                </main>
+            }
+        >
+            <TryOnPageInner />
+        </Suspense>
     );
 }
