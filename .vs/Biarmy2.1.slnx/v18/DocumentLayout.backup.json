@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\(app)\\try-on\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\(app)\\try-on\\page.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\.env.local||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:.env.local||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\CategoryTabs.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\components\\CategoryTabs.tsx||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\api\\closet\\route.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\api\\closet\\route.ts||{0F2454B1-A556-402D-A7D0-1FDE7F99DEE0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,7 +18,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -30,29 +30,28 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "CategoryTabs.tsx",
-              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\CategoryTabs.tsx",
-              "RelativeDocumentMoniker": "app\\components\\CategoryTabs.tsx",
-              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\components\\CategoryTabs.tsx",
-              "RelativeToolTip": "app\\components\\CategoryTabs.tsx",
-              "ViewState": "AgIAABEAAAAAAAAAAAAAABgAAAAvAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-03-31T22:58:10.587Z",
+              "DocumentIndex": 0,
+              "Title": ".env.local",
+              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\.env.local",
+              "RelativeDocumentMoniker": ".env.local",
+              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\.env.local",
+              "RelativeToolTip": ".env.local",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-04-24T02:38:56.474Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "page.tsx",
-              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\(app)\\try-on\\page.tsx",
-              "RelativeDocumentMoniker": "app\\(app)\\try-on\\page.tsx",
-              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\(app)\\try-on\\page.tsx",
-              "RelativeToolTip": "app\\(app)\\try-on\\page.tsx",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC8AAAABAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "route.ts",
+              "DocumentMoniker": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\api\\closet\\route.ts",
+              "RelativeDocumentMoniker": "app\\api\\closet\\route.ts",
+              "ToolTip": "C:\\Users\\smart\\Desktop\\shopping-app-galaxy\\Biarmy2.1\\app\\api\\closet\\route.ts",
+              "RelativeToolTip": "app\\api\\closet\\route.ts",
+              "ViewState": "AgIAACwAAAAAAAAAAAAAAD4AAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003213|",
-              "WhenOpened": "2026-03-31T22:16:51.048Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-24T02:14:58.339Z"
             }
           ]
         }

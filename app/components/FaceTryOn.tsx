@@ -19,6 +19,7 @@ type OverlayItem = {
 
 type FaceTryOnProps = {
     selectedOverlay?: OverlayItem | null;
+    category?: string;
 };
 
 type Smoothed = { x: number; y: number; scale: number; rotation: number };
@@ -52,8 +53,11 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
     const rafRef = useRef<number>(0);
     const streamRef = useRef<MediaStream | null>(null);
     const smoothRef = useRef<Smoothed | null>(null);
+    const lastVideoTimeRef = useRef<number>(-1);
     const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
     const visibleLayersRef = useRef<ReturnType<typeof useTryOnStore.getState>["layers"]>([]);
+    const lostFramesRef = useRef<number>(0);
+    const isCameraStoppingRef = useRef(false);
 
     const layers = useTryOnStore((s) => s.layers);
     const xp = useTryOnStore((s) => s.xp);
@@ -71,28 +75,39 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
         visibleLayersRef.current = visibleLayers;
     }, [visibleLayers]);
 
+    const resetTrackingState = () => {
+        lastVideoTimeRef.current = -1;
+        lostFramesRef.current = 0;
+        smoothRef.current = null;
+    };
+
+    const clearCanvas = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
     const stopCamera = () => {
+        isCameraStoppingRef.current = true;
         cancelAnimationFrame(rafRef.current);
 
         if (streamRef.current) {
-            streamRef.current.getTracks().forEach((t) => t.stop());
+            streamRef.current.getTracks().forEach((track) => track.stop());
             streamRef.current = null;
         }
 
         const video = videoRef.current;
         if (video) {
             video.pause();
+            video.onloadedmetadata = null;
             const mediaVideo = video as HTMLVideoElement & { srcObject: MediaStream | null };
             mediaVideo.srcObject = null;
         }
 
-        const canvas = canvasRef.current;
-        if (canvas) {
-            const ctx = canvas.getContext("2d");
-            ctx?.clearRect(0, 0, canvas.width, canvas.height);
-        }
-
-        smoothRef.current = null;
+        clearCanvas();
+        resetTrackingState();
         setStatus("idle");
         setStarted(false);
     };
@@ -106,6 +121,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
             return;
         }
 
+        resetTrackingState();
         setImgStatus("loading");
         setImgError("");
 
@@ -135,6 +151,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
         if (!started) return;
 
         let cancelled = false;
+        isCameraStoppingRef.current = false;
 
         const start = async () => {
             if (streamRef.current) return;
@@ -143,12 +160,17 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                 setStatus("loading");
 
                 const detector = await initializeFaceLandmarker();
-                if (cancelled) return;
+                if (cancelled || isCameraStoppingRef.current) return;
 
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: "user" },
                     audio: false,
                 });
+
+                if (cancelled || isCameraStoppingRef.current) {
+                    stream.getTracks().forEach((track) => track.stop());
+                    return;
+                }
 
                 streamRef.current = stream;
 
@@ -159,11 +181,18 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                 mediaVideo.srcObject = stream;
 
                 await new Promise<void>((resolve) => {
+                    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) {
+                        resolve();
+                        return;
+                    }
+
                     video.onloadedmetadata = () => resolve();
                 });
 
+                if (cancelled || isCameraStoppingRef.current) return;
+
                 await video.play();
-                if (cancelled) return;
+                if (cancelled || isCameraStoppingRef.current) return;
 
                 setStatus("ready");
 
@@ -176,16 +205,42 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                 const loop = () => {
                     const v = videoRef.current;
                     const c = canvasRef.current;
-                    if (!v || !c) return;
+
+                    if (cancelled || isCameraStoppingRef.current || !streamRef.current || !v || !c) {
+                        return;
+                    }
+
+                    if (v.videoWidth <= 0 || v.videoHeight <= 0) {
+                        rafRef.current = requestAnimationFrame(loop);
+                        return;
+                    }
 
                     if (c.width !== v.videoWidth) c.width = v.videoWidth;
                     if (c.height !== v.videoHeight) c.height = v.videoHeight;
 
-                    ctx.clearRect(0, 0, c.width, c.height);
+                    if (
+                        v.readyState < HTMLMediaElement.HAVE_FUTURE_DATA ||
+                        v.paused ||
+                        v.ended ||
+                        !Number.isFinite(v.currentTime) ||
+                        v.currentTime <= 0
+                    ) {
+                        rafRef.current = requestAnimationFrame(loop);
+                        return;
+                    }
 
+                    if (v.currentTime <= lastVideoTimeRef.current) {
+                        rafRef.current = requestAnimationFrame(loop);
+                        return;
+                    }
+
+                    lastVideoTimeRef.current = v.currentTime;
                     const { landmarks, faceDetected } = detectFaceLandmarks(v, detector);
 
                     if (faceDetected && landmarks) {
+                        lostFramesRef.current = 0;
+                        ctx.clearRect(0, 0, c.width, c.height);
+
                         const glassesAnchor = getGlassesPosition(landmarks, c.width, c.height);
 
                         const next: Smoothed = {
@@ -203,7 +258,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
 
                         for (const layer of visibleLayersRef.current) {
                             const img = imageCacheRef.current[layer.asset.id];
-                            if (!img || !img.complete) continue;
+                            if (!img || !img.complete || img.naturalWidth <= 0) continue;
 
                             if (layer.category === "earrings") {
                                 const leftAnchor = getEarringPosition(
@@ -254,7 +309,12 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                             }
                         }
                     } else {
-                        smoothRef.current = null;
+                        lostFramesRef.current += 1;
+
+                        if (lostFramesRef.current > 6) {
+                            ctx.clearRect(0, 0, c.width, c.height);
+                            smoothRef.current = null;
+                        }
                     }
 
                     rafRef.current = requestAnimationFrame(loop);
@@ -262,7 +322,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
 
                 rafRef.current = requestAnimationFrame(loop);
             } catch (err) {
-                console.error(err);
+                console.warn("Camera/tracker startup issue:", err);
                 setStatus("error");
                 stopCamera();
             }
@@ -272,12 +332,15 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
 
         return () => {
             cancelled = true;
+            isCameraStoppingRef.current = true;
             cancelAnimationFrame(rafRef.current);
 
             if (streamRef.current) {
-                streamRef.current.getTracks().forEach((t) => t.stop());
+                streamRef.current.getTracks().forEach((track) => track.stop());
                 streamRef.current = null;
             }
+
+            resetTrackingState();
         };
     }, [started]);
 
@@ -308,6 +371,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
                     className="w-full h-auto transform scale-x-[-1]"
                     playsInline
                     muted
+                    autoPlay
                 />
                 <canvas
                     ref={canvasRef}

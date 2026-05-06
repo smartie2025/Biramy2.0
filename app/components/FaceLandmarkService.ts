@@ -1,4 +1,4 @@
-import { FaceLandmarker, FilesetResolver, type NormalizedLandmark } from "@mediapipe/tasks-vision";
+import type { FaceLandmarker, NormalizedLandmark } from "@mediapipe/tasks-vision";
 
 export interface FaceLandmarks {
     leftEye: NormalizedLandmark[];
@@ -16,17 +16,85 @@ export interface DetectionResult {
     faceDetected: boolean;
 }
 
+declare global {
+    interface Window {
+        __biramyTFLiteConsoleFilterInstalled?: boolean;
+    }
+}
+
 let faceLandmarker: FaceLandmarker | null = null;
 let initPromise: Promise<FaceLandmarker> | null = null;
 let hasLoggedDetectionWarning = false;
 
+const TFLITE_INFO_MESSAGE = "Created TensorFlow Lite XNNPACK delegate for CPU";
+type ConsoleMethod = "error" | "warn" | "info" | "log";
+
+const stringifyConsoleArgs = (args: unknown[]) =>
+    args
+        .map((arg) => {
+            if (typeof arg === "string") return arg;
+            if (arg instanceof Error) return arg.message;
+
+            try {
+                return JSON.stringify(arg) ?? String(arg);
+            } catch {
+                return String(arg);
+            }
+        })
+        .join(" ");
+
+const isNoisyTFLiteInfoMessage = (args: unknown[]) =>
+    stringifyConsoleArgs(args).includes(TFLITE_INFO_MESSAGE);
+
+export const installNoisyTFLiteConsoleFilter = () => {
+    if (typeof window === "undefined") return;
+    if (window.__biramyTFLiteConsoleFilterInstalled) return;
+
+    window.__biramyTFLiteConsoleFilterInstalled = true;
+
+    const consoleRecord = console as unknown as Record<ConsoleMethod, (...args: unknown[]) => void>;
+    const methods: ConsoleMethod[] = ["error", "warn", "info", "log"];
+
+    methods.forEach((method) => {
+        const original = consoleRecord[method].bind(console);
+
+        consoleRecord[method] = (...args: unknown[]) => {
+            if (isNoisyTFLiteInfoMessage(args)) {
+                return;
+            }
+
+            original(...args);
+        };
+    });
+};
+
+installNoisyTFLiteConsoleFilter();
+
+const isVideoReadyForDetection = (videoElement: HTMLVideoElement) => {
+    return (
+        videoElement.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA &&
+        !videoElement.paused &&
+        !videoElement.ended &&
+        videoElement.videoWidth > 0 &&
+        videoElement.videoHeight > 0 &&
+        Number.isFinite(videoElement.currentTime) &&
+        videoElement.currentTime > 0
+    );
+};
+
 export const initializeFaceLandmarker = async (): Promise<FaceLandmarker> => {
+    installNoisyTFLiteConsoleFilter();
+
     if (faceLandmarker) return faceLandmarker;
     if (initPromise) return initPromise;
 
     initPromise = (async () => {
         try {
             console.log("Initializing MediaPipe Face Landmarker...");
+
+            const { FaceLandmarker, FilesetResolver } = await import(
+                "@mediapipe/tasks-vision"
+            );
 
             const vision = await FilesetResolver.forVisionTasks(
                 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm"
@@ -48,9 +116,8 @@ export const initializeFaceLandmarker = async (): Promise<FaceLandmarker> => {
             console.log("Face Landmarker initialized successfully");
             return detector;
         } catch (error) {
-            console.error("Full initialization error:", error);
+            console.warn("Face landmarker initialization issue:", error);
             const errorMessage = error instanceof Error ? error.message : String(error);
-            console.error("Error details:", errorMessage);
             initPromise = null;
             throw new Error(`Face detection setup failed: ${errorMessage}`);
         }
@@ -63,26 +130,16 @@ export const detectFaceLandmarks = (
     videoElement: HTMLVideoElement,
     detector?: FaceLandmarker
 ): DetectionResult => {
+    installNoisyTFLiteConsoleFilter();
+
     const landmarkerToUse = detector || faceLandmarker;
 
-    if (!landmarkerToUse) {
-        return { landmarks: null, faceDetected: false };
-    }
-
-    if (
-        !videoElement ||
-        videoElement.readyState < 2 ||
-        videoElement.videoWidth === 0 ||
-        videoElement.videoHeight === 0
-    ) {
+    if (!landmarkerToUse || !videoElement || !isVideoReadyForDetection(videoElement)) {
         return { landmarks: null, faceDetected: false };
     }
 
     try {
-        const results = landmarkerToUse.detectForVideo(
-            videoElement,
-            performance.now()
-        );
+        const results = landmarkerToUse.detectForVideo(videoElement, performance.now());
 
         if (!results.faceLandmarks || results.faceLandmarks.length === 0) {
             return { landmarks: null, faceDetected: false };
@@ -102,7 +159,7 @@ export const detectFaceLandmarks = (
             allLandmarks[159],
             allLandmarks[160],
             allLandmarks[161],
-        ];
+        ].filter(Boolean);
 
         const rightEye = [
             allLandmarks[362],
@@ -112,11 +169,21 @@ export const detectFaceLandmarks = (
             allLandmarks[388],
             allLandmarks[389],
             allLandmarks[390],
-        ];
+        ].filter(Boolean);
 
         const noseBridge = allLandmarks[6];
         const leftEar = allLandmarks[234];
         const rightEar = allLandmarks[454];
+
+        if (
+            leftEye.length === 0 ||
+            rightEye.length === 0 ||
+            !noseBridge ||
+            !leftEar ||
+            !rightEar
+        ) {
+            return { landmarks: null, faceDetected: false };
+        }
 
         const faceContourIndices = [
             10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
@@ -143,6 +210,10 @@ export const detectFaceLandmarks = (
         const faceWidth = maxX - minX;
         const faceHeight = maxY - minY;
 
+        if (faceWidth <= 0 || faceHeight <= 0) {
+            return { landmarks: null, faceDetected: false };
+        }
+
         const faceCenter: NormalizedLandmark = {
             x: (minX + maxX) / 2,
             y: (minY + maxY) / 2,
@@ -166,7 +237,8 @@ export const detectFaceLandmarks = (
         return { landmarks, faceDetected: true };
     } catch (error) {
         if (!hasLoggedDetectionWarning) {
-            console.warn("Face landmark detection skipped for a frame.", error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.warn("Face landmark detection skipped for a frame.", errorMessage);
             hasLoggedDetectionWarning = true;
         }
 

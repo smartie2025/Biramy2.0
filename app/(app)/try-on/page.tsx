@@ -256,6 +256,10 @@ function TryOnPageInner() {
         <main className="p-4 pb-24">
             <h1 className="mb-4 text-2xl font-bold">Try On</h1>
 
+            <div className="mb-2 text-xs text-slate-500">
+                look param: {searchParams.get("look") ?? "none"}
+            </div>
+
             <div className="mb-4">
                 <CategoryTabs
                     value={category}

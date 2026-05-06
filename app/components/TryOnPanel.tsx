@@ -14,6 +14,35 @@ type TryOnPanelProps = {
     alerts?: PanelAlert[];
 };
 
+type ShopMeta = {
+    id?: string;
+    itemId?: number;
+    name?: string;
+    brand?: string;
+    price?: string;
+    shopUrl?: string;
+};
+
+type PanelNotice = {
+    tone: "success" | "error" | "xp";
+    text: string;
+};
+
+function getClosetItemId(asset?: ShopMeta) {
+    if (!asset) return null;
+
+    if (typeof asset.itemId === "number" && Number.isFinite(asset.itemId)) {
+        return asset.itemId;
+    }
+
+    if (typeof asset.id === "string" && asset.id.trim()) {
+        const parsed = Number(asset.id);
+        return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    return null;
+}
+
 export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
     const {
         layers,
@@ -21,12 +50,24 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
         setActiveLayer,
         removeLayer,
         updateLayer,
+        addXP,
     } = useTryOnStore();
+
+    const [panelNotice, setPanelNotice] = React.useState<PanelNotice | null>(null);
+    const [isSavingToCloset, setIsSavingToCloset] = React.useState(false);
+
+    React.useEffect(() => {
+        setPanelNotice(null);
+        setIsSavingToCloset(false);
+    }, [activeLayerId]);
 
     const activeLayer =
         (activeLayerId && layers.find((l) => l.id === activeLayerId)) ||
         layers[layers.length - 1] ||
         null;
+
+    const activeAsset = activeLayer?.asset as ShopMeta | undefined;
+    const closetItemId = getClosetItemId(activeAsset);
 
     const layerInfos = layers.map((layer) => {
         return {
@@ -83,7 +124,84 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
         removeLayer(activeLayer.id);
     };
 
+    const handleShopClick = () => {
+        addXP(10);
+        setPanelNotice({
+            tone: "xp",
+            text: "✨ Shopping portal opened! +10 XP",
+        });
+    };
+
+    const handleSaveToCloset = async () => {
+        if (!activeLayer) return;
+
+        if (!closetItemId) {
+            setPanelNotice({
+                tone: "error",
+                text: "This item needs a numeric closet item ID before it can be saved.",
+            });
+            return;
+        }
+
+        setIsSavingToCloset(true);
+        setPanelNotice({
+            tone: "success",
+            text: "Saving to Closet...",
+        });
+
+        try {
+            const response = await fetch("/api/closet", {
+                method: "POST",
+                cache: "no-store",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    item: closetItemId,
+                    nickName: activeAsset?.name ?? activeLayer.asset.id ?? "Saved item",
+                    rating: "5",
+                }),
+            });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok || data?.ok === false) {
+                throw new Error(
+                    data?.error ??
+                    `Closet save failed: ${response.status} ${response.statusText}`
+                );
+            }
+
+            addXP(15);
+            setPanelNotice({
+                tone: "success",
+                text: "♡ Saved to Closet! +15 XP",
+            });
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "Closet save failed.";
+
+            setPanelNotice({
+                tone: "error",
+                text: `Closet save failed: ${message}`,
+            });
+        } finally {
+            setIsSavingToCloset(false);
+        }
+    };
+
     const rotationDeg = activeLayer ? activeLayer.rotation : 0;
+    const hasShoppingInfo =
+        Boolean(activeAsset?.brand) ||
+        Boolean(activeAsset?.price) ||
+        Boolean(activeAsset?.shopUrl);
+
+    const noticeClasses =
+        panelNotice?.tone === "error"
+            ? "border-rose-400/40 bg-rose-500/10 text-rose-200"
+            : panelNotice?.tone === "xp"
+                ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
+                : "border-sky-400/30 bg-sky-500/10 text-sky-200";
 
     return (
         <aside className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-6">
@@ -150,8 +268,8 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
                                 key={layer.id}
                                 type="button"
                                 className={`w-full rounded-xl border px-3 py-2 text-left transition ${isActive
-                                        ? "border-sky-500 bg-sky-500/10"
-                                        : "border-slate-700 bg-slate-900/60 hover:border-slate-500"
+                                    ? "border-sky-500 bg-sky-500/10"
+                                    : "border-slate-700 bg-slate-900/60 hover:border-slate-500"
                                     }`}
                                 onClick={() => setActiveLayer(layer.id)}
                             >
@@ -184,6 +302,104 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
                         Remove layer
                     </button>
                 </div>
+            </section>
+            <section>
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                    Selected Item
+                </h2>
+
+                {!activeLayer ? (
+                    <div className="rounded-lg border border-dashed border-slate-700 px-3 py-3 text-xs text-slate-500">
+                        Select an item to view shopping details.
+                    </div>
+                ) : (
+                    <div className="rounded-2xl border border-slate-700 bg-slate-950/50 p-3">
+                        <div className="flex items-start gap-3">
+                            {activeLayer.asset.thumb && (
+                                <img
+                                    src={activeLayer.asset.thumb}
+                                    alt={activeAsset?.name ?? "Selected item"}
+                                    className="h-14 w-14 rounded-xl border border-slate-700 object-contain bg-slate-900"
+                                />
+                            )}
+
+                            <div className="min-w-0 flex-1">
+                                <div className="truncate text-sm font-semibold text-white">
+                                    {activeAsset?.name ?? activeLayer.asset.id}
+                                </div>
+
+                                {activeLayer.category && (
+                                    <div className="mt-0.5 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                                        {activeLayer.category}
+                                    </div>
+                                )}
+
+                                {hasShoppingInfo ? (
+                                    <div className="mt-2 space-y-1 text-xs text-slate-300">
+                                        {activeAsset?.brand && (
+                                            <div>
+                                                <span className="text-slate-500">Brand: </span>
+                                                {activeAsset.brand}
+                                            </div>
+                                        )}
+
+                                        {activeAsset?.price && (
+                                            <div>
+                                                <span className="text-slate-500">Price: </span>
+                                                {activeAsset.price}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="mt-2 text-xs text-slate-500">
+                                        Shopping details are not available yet.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {panelNotice && (
+                            <div
+                                className={`mt-3 rounded-xl border px-3 py-2 text-xs font-semibold ${noticeClasses}`}
+                            >
+                                {panelNotice.text}
+                            </div>
+                        )}
+
+                        <div className="mt-3 grid grid-cols-1 gap-2">
+                            {activeAsset?.shopUrl ? (
+                                <a
+                                    href={activeAsset.shopUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={handleShopClick}
+                                    className="block w-full rounded-xl bg-emerald-500 px-3 py-2 text-center text-xs font-semibold text-slate-950 hover:bg-emerald-400"
+                                >
+                                    Shop this item · +10 XP
+                                </a>
+                            ) : (
+                                <button
+                                    type="button"
+                                    disabled
+                                    className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-3 py-2 text-xs text-slate-500 disabled:cursor-not-allowed"
+                                >
+                                    Shop link coming soon
+                                </button>
+                            )}
+
+                            <button
+                                type="button"
+                                onClick={handleSaveToCloset}
+                                disabled={isSavingToCloset}
+                                className="w-full rounded-xl border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {isSavingToCloset
+                                    ? "Saving to Closet..."
+                                    : "♡ Save to Closet · +15 XP"}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </section>
 
             <section>

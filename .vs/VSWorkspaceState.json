@@ -1,16 +1,15 @@
 {
   "ExpandedNodes": [
     "",
-    "\\.github",
     "\\app",
-    "\\app\\(app)",
-    "\\app\\(app)\\try-on",
     "\\app\\api",
     "\\app\\api\\tryon-assets",
     "\\app\\components",
     "\\app\\lib",
-    "\\app\\store"
+    "\\app\\store",
+    "\\components",
+    "\\components\\marketing"
   ],
-  "SelectedNode": "\\app\\components\\CategoryTabs.tsx",
+  "SelectedNode": "\\.env.local",
   "PreviewInSolutionExplorer": false
 }

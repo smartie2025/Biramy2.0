@@ -6,9 +6,33 @@ import { useTryOnStore } from "../store/tryon";
 
 export type OverlayItem = {
     id: string;
+    itemId?: number;
     name: string;
     src: string;
     thumb?: string;
+    category?: string;
+    shopUrl?: string;
+    brand?: string;
+    price?: string;
+};
+
+type RawOverlayItem = {
+    id?: string | number;
+    itemId?: string | number;
+    name?: string;
+    src?: string;
+    url?: string;
+    imageUrl?: string;
+    image?: string;
+    thumb?: string;
+    thumbnail?: string;
+    category?: string;
+    categoryName?: string;
+    shopUrl?: string;
+    productUrl?: string;
+    productPageUrl?: string;
+    brand?: string;
+    price?: string | number;
 };
 
 type Props = {
@@ -43,31 +67,41 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
 
                 const rawList = Array.isArray(data.overlays) ? data.overlays : [];
 
-                type RawOverlayItem = {
-                    id?: string | number;
-                    name?: string;
-                    src?: string;
-                    url?: string;
-                    imageUrl?: string;
-                    image?: string;
-                    thumb?: string;
-                    thumbnail?: string;
-                };
-
                 const list: OverlayItem[] = (rawList as RawOverlayItem[])
-                    .map((item) => ({
-                        id: String(item.id ?? item.name ?? crypto.randomUUID()),
-                        name: item.name ?? "Unnamed Item",
-                        src: item.src ?? item.url ?? item.imageUrl ?? item.image ?? "",
-                        thumb:
-                            item.thumb ??
-                            item.thumbnail ??
-                            item.src ??
-                            item.url ??
-                            item.imageUrl ??
-                            item.image ??
-                            "",
-                    }))
+                    .map((item) => {
+                        const numericItemId =
+                            typeof item.itemId === "number"
+                                ? item.itemId
+                                : typeof item.id === "number"
+                                    ? item.id
+                                    : typeof item.itemId === "string" && !Number.isNaN(Number(item.itemId))
+                                        ? Number(item.itemId)
+                                        : typeof item.id === "string" && !Number.isNaN(Number(item.id))
+                                            ? Number(item.id)
+                                            : undefined;
+
+                        return {
+                            id: String(item.id ?? item.name ?? crypto.randomUUID()),
+                            itemId: numericItemId,
+                            name: item.name ?? "Unnamed Item",
+                            src: item.src ?? item.url ?? item.imageUrl ?? item.image ?? "",
+                            thumb:
+                                item.thumb ??
+                                item.thumbnail ??
+                                item.src ??
+                                item.url ??
+                                item.imageUrl ??
+                                item.image ??
+                                "",
+                            category: item.category ?? item.categoryName ?? category,
+                            shopUrl: item.shopUrl ?? item.productUrl ?? item.productPageUrl,
+                            brand: item.brand,
+                            price:
+                                typeof item.price === "number"
+                                    ? `$${item.price.toFixed(2)}`
+                                    : item.price,
+                        };
+                    })
                     .filter((item) => item.src);
 
                 if (!cancelled) {
@@ -109,6 +143,7 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
                 addLayer(chosen, category);
                 addXP(10);
                 incrementTryOnMission();
+                console.log("Chosen item:", chosen);
             }}
         >
             <option value="">Select {category}</option>

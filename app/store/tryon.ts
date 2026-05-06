@@ -26,7 +26,7 @@ export type LayerState = {
     y: number;
     z: number;
     scale: number;
-    rotation: number; // degrees
+    rotation: number;
     opacity: number;
     visible: boolean;
 };

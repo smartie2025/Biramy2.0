@@ -12,6 +12,9 @@ export type LookCategory =
 export type FeaturedLookItem = {
     category: LookCategory;
     assetId: string;
+    brand?: string;
+    price?: string;
+    shopUrl?: string;
 };
 
 export type FeaturedLook = {
@@ -30,7 +33,19 @@ export const LOOK_OF_THE_DAY: FeaturedLook = {
     rewardXp: 25,
     missionId: "try-look-of-the-day",
     items: [
-        { category: "glasses", assetId: "glasses-1" },
-        { category: "earrings", assetId: "earrings-1" },
+        {
+            category: "glasses",
+            assetId: "glasses-1",
+            brand: "Curated glasses search",
+            price: "See site",
+            shopUrl: "https://www.google.com/search?tbm=shop&q=black+gold+rimmed+glasses",
+        },
+        {
+            category: "earrings",
+            assetId: "earrings-1",
+            brand: "Curated earrings search",
+            price: "See site",
+            shopUrl: "https://www.google.com/search?tbm=shop&q=moon+drop+earrings",
+        },
     ],
 };
