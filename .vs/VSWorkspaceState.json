@@ -2,14 +2,15 @@
   "ExpandedNodes": [
     "",
     "\\app",
+    "\\app\\(site)",
+    "\\app\\(site)\\closet",
+    "\\app\\(site)\\shop",
     "\\app\\api",
+    "\\app\\api\\closet",
     "\\app\\api\\tryon-assets",
     "\\app\\components",
-    "\\app\\lib",
-    "\\app\\store",
-    "\\components",
-    "\\components\\marketing"
+    "\\app\\store"
   ],
-  "SelectedNode": "\\.env.local",
+  "SelectedNode": "\\app\\api\\closet\\route.ts",
   "PreviewInSolutionExplorer": false
 }

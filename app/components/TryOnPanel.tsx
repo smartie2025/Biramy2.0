@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 import { useTryOnStore } from "../store/tryon";
 
@@ -26,6 +27,8 @@ type ShopMeta = {
 type PanelNotice = {
     tone: "success" | "error" | "xp";
     text: string;
+    actionHref?: string;
+    actionLabel?: string;
 };
 
 function getClosetItemId(asset?: ShopMeta) {
@@ -176,6 +179,8 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
             setPanelNotice({
                 tone: "success",
                 text: "♡ Saved to Closet! +15 XP",
+                actionHref: "/closet",
+                actionLabel: "View Closet",
             });
         } catch (error) {
             const message =
@@ -202,6 +207,13 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
             : panelNotice?.tone === "xp"
                 ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
                 : "border-sky-400/30 bg-sky-500/10 text-sky-200";
+
+    const noticeActionClasses =
+        panelNotice?.tone === "error"
+            ? "border-rose-300/40 bg-rose-300/10 text-rose-100 hover:bg-rose-300/20"
+            : panelNotice?.tone === "xp"
+                ? "border-emerald-300/40 bg-emerald-300/10 text-emerald-100 hover:bg-emerald-300/20"
+                : "border-sky-300/40 bg-sky-300/10 text-sky-100 hover:bg-sky-300/20";
 
     return (
         <aside className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-6">
@@ -362,7 +374,18 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
                             <div
                                 className={`mt-3 rounded-xl border px-3 py-2 text-xs font-semibold ${noticeClasses}`}
                             >
-                                {panelNotice.text}
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <span>{panelNotice.text}</span>
+
+                                    {panelNotice.actionHref && panelNotice.actionLabel && (
+                                        <Link
+                                            href={panelNotice.actionHref}
+                                            className={`inline-flex justify-center rounded-lg border px-3 py-1.5 text-[11px] font-semibold ${noticeActionClasses}`}
+                                        >
+                                            {panelNotice.actionLabel}
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
                         )}
 
