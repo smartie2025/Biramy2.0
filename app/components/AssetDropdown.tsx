@@ -74,9 +74,11 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
                                 ? item.itemId
                                 : typeof item.id === "number"
                                     ? item.id
-                                    : typeof item.itemId === "string" && !Number.isNaN(Number(item.itemId))
+                                    : typeof item.itemId === "string" &&
+                                        !Number.isNaN(Number(item.itemId))
                                         ? Number(item.itemId)
-                                        : typeof item.id === "string" && !Number.isNaN(Number(item.id))
+                                        : typeof item.id === "string" &&
+                                            !Number.isNaN(Number(item.id))
                                             ? Number(item.id)
                                             : undefined;
 
@@ -125,12 +127,16 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
     }, [category, onSelectAction]);
 
     if (error) {
-        return <div className="text-red-600">Dropdown error: {error}</div>;
+        return (
+            <div className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                Dropdown error: {error}
+            </div>
+        );
     }
 
     return (
         <select
-            className="w-full rounded-lg border px-3 py-2 text-sm"
+            className="w-full rounded-xl border border-white/20 bg-slate-950 px-4 py-3 text-sm font-medium text-white shadow-inner shadow-black/30 outline-none transition focus:border-amber-100 focus:ring-2 focus:ring-amber-100/20"
             defaultValue=""
             onChange={(e) => {
                 const id = e.target.value;
@@ -146,9 +152,12 @@ export default function AssetDropdown({ category, onSelectAction }: Props) {
                 console.log("Chosen item:", chosen);
             }}
         >
-            <option value="">Select {category}</option>
+            <option value="" className="bg-slate-950 text-slate-300">
+                Select {category}
+            </option>
+
             {items.map((a) => (
-                <option key={a.id} value={a.id}>
+                <option key={a.id} value={a.id} className="bg-slate-950 text-white">
                     {a.name}
                 </option>
             ))}

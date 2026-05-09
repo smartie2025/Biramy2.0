@@ -345,62 +345,68 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
     }, [started]);
 
     return (
-        <div className="w-full max-w-lg mx-auto">
+        <div className="mx-auto w-full max-w-lg">
             <div className="mb-3 grid grid-cols-3 gap-2 text-xs">
-                <div className="rounded-xl bg-slate-100 px-3 py-2">
-                    <div className="opacity-60">XP</div>
-                    <div className="font-semibold">{xp}</div>
+                <div className="rounded-xl border border-amber-100/20 bg-slate-900/80 px-3 py-2 text-white">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/70">
+                        XP
+                    </div>
+                    <div className="mt-1 font-semibold text-amber-100">{xp}</div>
                 </div>
 
-                <div className="rounded-xl bg-slate-100 px-3 py-2">
-                    <div className="opacity-60">Level</div>
-                    <div className="font-semibold">{level}</div>
+                <div className="rounded-xl border border-amber-100/20 bg-slate-900/80 px-3 py-2 text-white">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/70">
+                        Level
+                    </div>
+                    <div className="mt-1 font-semibold text-amber-100">{level}</div>
                 </div>
 
-                <div className="rounded-xl bg-slate-100 px-3 py-2">
-                    <div className="opacity-60">Mission</div>
-                    <div className="font-semibold">
+                <div className="rounded-xl border border-amber-100/20 bg-slate-900/80 px-3 py-2 text-white">
+                    <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100/70">
+                        Mission
+                    </div>
+                    <div className="mt-1 font-semibold text-amber-100">
                         {tryMission ? `${tryMission.current}/${tryMission.target}` : "—"}
                     </div>
                 </div>
             </div>
 
-            <div className="relative w-full overflow-hidden rounded-2xl shadow">
+            <div className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow">
                 <video
                     ref={videoRef}
-                    className="w-full h-auto transform scale-x-[-1]"
+                    className="h-auto w-full transform scale-x-[-1]"
                     playsInline
                     muted
                     autoPlay
                 />
                 <canvas
                     ref={canvasRef}
-                    className="absolute inset-0 w-full h-full pointer-events-none transform scale-x-[-1]"
+                    className="pointer-events-none absolute inset-0 h-full w-full transform scale-x-[-1]"
                 />
             </div>
 
-            <div className="mt-3 text-sm opacity-80">
+            <div className="mt-3 text-sm text-slate-300">
                 {status === "loading" && "Loading face tracker…"}
                 {status === "ready" && "Tracker ready. Move your head—overlay should stay locked."}
                 {status === "error" && "Camera/tracker error. Check permissions and console."}
                 {status === "idle" && "Select an item, then start the camera."}
             </div>
 
-            <div className="mt-2 text-xs">
+            <div className="mt-2 text-xs text-slate-300">
                 Selected overlay:{" "}
-                <span className="font-semibold">
+                <span className="font-semibold text-white">
                     {selectedOverlay ? selectedOverlay.name : "none"}
                 </span>
             </div>
 
-            <div className="mt-2 text-xs">
-                Image status: <span className="font-semibold">{imgStatus}</span>
-                {imgError ? <div className="text-red-600 break-all">{imgError}</div> : null}
+            <div className="mt-2 text-xs text-slate-300">
+                Image status: <span className="font-semibold text-white">{imgStatus}</span>
+                {imgError ? <div className="break-all text-red-300">{imgError}</div> : null}
             </div>
 
-            <div className="mt-2 text-xs">
+            <div className="mt-2 text-xs text-slate-300">
                 Visible layers:{" "}
-                <span className="font-semibold">
+                <span className="font-semibold text-white">
                     {visibleLayers.length > 0
                         ? visibleLayers.map((l) => l.asset.name).join(" | ")
                         : "none"}
@@ -408,9 +414,9 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
             </div>
 
             {tryMission ? (
-                <div className="mt-3 rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                <div className="mt-3 rounded-xl border border-white/10 bg-slate-900/60 px-3 py-2 text-sm text-white">
                     <div className="font-semibold">{tryMission.title}</div>
-                    <div className="text-xs opacity-70">
+                    <div className="text-xs text-slate-400">
                         Progress: {tryMission.current}/{tryMission.target}
                         {tryMission.completed ? " • Complete!" : ""}
                     </div>
@@ -427,7 +433,7 @@ export default function FaceTryOn({ selectedOverlay }: FaceTryOnProps) {
             ) : (
                 <button
                     onClick={stopCamera}
-                    className="mt-3 w-full rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-300"
+                    className="mt-3 w-full rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-slate-300"
                 >
                     Stop Camera
                 </button>

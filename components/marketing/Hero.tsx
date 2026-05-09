@@ -116,25 +116,16 @@ export default function Hero() {
                             </div>
 
                             {/* editorial marks */}
-                            <div className="absolute left-6 top-36 z-20">
-                                <div className="text-5xl font-light leading-none tracking-tight text-white/92 drop-shadow-sm">
-                                    AR
-                                </div>
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.38em] text-white/82">
-                                    editorial preview
-                                </div>
-                            </div>
-
-                            {/*<div className="absolute right-6 top-34 z-20 text-right">*/}
-                            {/*    <div className="text-[10px] uppercase tracking-[0.34em] text-white/85">*/}
-                            {/*        LOOK OF THE DAY*/}
+                            {/*<div className="absolute left-6 top-36 z-20">*/}
+                            {/*    <div className="text-5xl font-light leading-none tracking-tight text-white/92 drop-shadow-sm">*/}
+                            {/*        AR*/}
                             {/*    </div>*/}
-                            {/*    <div className="mt-1 text-xs text-white/78">*/}
-                            {/*        Community-selected*/}
+                            {/*    <div className="mt-2 text-[10px] uppercase tracking-[0.38em] text-white/82">*/}
+                            {/*        editorial preview*/}
                             {/*    </div>*/}
                             {/*</div>*/}
 
-                            {/* right side category chips */}
+                          
                             <div className="absolute right-5 top-52 z-20 flex flex-col gap-3">
                                 <button
                                     aria-label="Glasses"
@@ -149,27 +140,7 @@ export default function Hero() {
                                     ER
                                 </button>
                             </div>
-                            {/*<div className="absolute right-5 top-52 z-20 flex flex-col gap-3">*/}
-                            {/*    <button*/}
-                            {/*        aria-label="Glasses"*/}
-                            {/*        className="h-10 w-10 rounded-full border border-white/45 bg-white/58 text-[9px] font-medium tracking-[0.14em] text-slate-700/75 shadow-sm backdrop-blur"*/}
-                            {/*    >*/}
-                            {/*        GL*/}
-                            {/*    </button>*/}
-                            {/*    <button*/}
-                            {/*        aria-label="Earrings"*/}
-                            {/*        className="h-10 w-10 rounded-full border border-white/45 bg-white/58 text-[9px] font-medium tracking-[0.14em] text-slate-700/75 shadow-sm backdrop-blur"*/}
-                            {/*    >*/}
-                            {/*        ER*/}
-                            {/*    </button>*/}
-                            {/*    <button*/}
-                            {/*        aria-label="Top look"*/}
-                            {/*        className="h-10 w-10 rounded-full border border-white/45 bg-white/58 text-[10px] text-slate-700/75 shadow-sm backdrop-blur"*/}
-                            {/*    >*/}
-                            {/*        ✦*/}
-                            {/*    </button>*/}
-                            {/*</div>*/}
-
+                         
                             {/* featured copy */}
                             <div className="absolute inset-x-0 bottom-56 z-20 px-6">
                                 <div className="max-w-[78%] rounded-[1.6rem] border border-white/50 bg-white/24 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.14)] backdrop-blur-md">
@@ -179,12 +150,12 @@ export default function Hero() {
                                                 LOOK OF THE DAY
                                             </div>
                                             <h3 className="mt-3 text-[30px] font-light leading-[1.02] tracking-tight text-white drop-shadow-sm">
-                                                Midnight
+                                                Garden Party
                                                 <br />
-                                                Starlight
+                                                Elegance
                                             </h3>
-                                            <p className="mt-3 max-w-[220px] text-sm leading-6 text-white/92">
-                                                Rose-gold glasses + moon-drop earrings
+                                            <p className="mt-3 max-w-[320px] text-[15px] leading-6 text-white/92">
+                                                Elegant afternoon style
                                             </p>
                                         </div>
 
@@ -195,7 +166,7 @@ export default function Hero() {
 
                                     <div className="mt-4 flex items-center justify-between gap-3">
                                         <div className="text-[11px] text-white/78">
-                                            Selected from today&apos;s top styling energy
+                                            Curated for graceful events and special moments
                                         </div>
 
                                         <button
@@ -207,44 +178,6 @@ export default function Hero() {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* product rail */}
-                            {/*<div className="absolute inset-x-0 bottom-20 z-20 px-4">*/}
-                            {/*    <div className="rounded-[1.4rem] border border-white/50 bg-white/52 p-3 shadow-[0_12px_35px_rgba(0,0,0,0.10)] backdrop-blur-md">*/}
-                            {/*        <div className="flex items-center gap-3 overflow-hidden">*/}
-                            {/*            {["GLASSES", "EARRINGS"].map(*/}
-                            {/*                (label) => (*/}
-                            {/*                    <div*/}
-                            {/*                        key={label}*/}
-                            {/*                        className="min-w-[74px] flex-1 rounded-[1rem] border border-white/55 bg-white/52 px-2 py-3 text-center shadow-sm"*/}
-                            {/*                    >*/}
-                            {/*                        <div className="mx-auto h-8 w-8 rounded-full bg-gradient-to-br from-rose-200/70 via-orange-100/70 to-stone-200/70 shadow-inner" />*/}
-                            {/*                        <div className="mt-2 text-[8px] font-medium tracking-[0.14em] text-slate-600/75">*/}
-                            {/*                            {label}*/}
-                            {/*                        </div>*/}
-                            {/*                    </div>*/}
-                            {/*                )*/}
-                            {/*            )}*/}
-                            {/*        </div>*/}
-                            {/*    </div>*/}
-                            {/*</div>*/}
-
-                            {/* bottom controls */}
-                            {/*<div className="absolute inset-x-0 bottom-5 z-20 flex items-center justify-center gap-5">*/}
-                            {/*    <button*/}
-                            {/*        aria-label="Layers"*/}
-                            {/*        className="h-11 w-11 rounded-full border border-white/70 bg-white/80 shadow-md backdrop-blur"*/}
-                            {/*    />*/}
-                            {/*    <button*/}
-                            {/*        aria-label="Open Try On"*/}
-                            {/*        onClick={() => router.push("/try-on")}*/}
-                            {/*        className="h-14 w-14 rounded-full border border-transparent bg-gradient-to-br from-orange-400 to-rose-400 shadow-[0_10px_30px_rgba(251,113,133,0.35)]"*/}
-                            {/*    />*/}
-                            {/*    <button*/}
-                            {/*        aria-label="Share"*/}
-                            {/*        className="h-11 w-11 rounded-full border border-white/70 bg-white/80 shadow-md backdrop-blur"*/}
-                            {/*    />*/}
-                            {/*</div>*/}
                         </div>
                     </div>
                 </div>

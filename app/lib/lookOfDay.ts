@@ -28,8 +28,8 @@ export type FeaturedLook = {
 
 export const LOOK_OF_THE_DAY: FeaturedLook = {
     id: "midnight-starlight",
-    title: "Midnight Starlight",
-    subtitle: "Rose-gold glasses + moon-drop earrings",
+    title: "Golden Hour Glamour",
+    subtitle: "Elegant dressing for garden parties and special occasions",
     rewardXp: 25,
     missionId: "try-look-of-the-day",
     items: [

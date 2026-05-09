@@ -46,6 +46,10 @@ function getClosetItemId(asset?: ShopMeta) {
     return null;
 }
 
+function getPieceLabel(count: number) {
+    return count === 1 ? "1 piece" : `${count} pieces`;
+}
+
 export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
     const {
         layers,
@@ -57,11 +61,13 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
     } = useTryOnStore();
 
     const [panelNotice, setPanelNotice] = React.useState<PanelNotice | null>(null);
-    const [isSavingToCloset, setIsSavingToCloset] = React.useState(false);
+    const [isSavingSelectedItem, setIsSavingSelectedItem] = React.useState(false);
+    const [isSavingCurrentLook, setIsSavingCurrentLook] = React.useState(false);
 
     React.useEffect(() => {
         setPanelNotice(null);
-        setIsSavingToCloset(false);
+        setIsSavingSelectedItem(false);
+        setIsSavingCurrentLook(false);
     }, [activeLayerId]);
 
     const activeLayer =
@@ -79,6 +85,14 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
             category: layer.category,
         };
     });
+
+    const firstSaveableLayer = layers.find((layer) => {
+        const asset = layer.asset as ShopMeta | undefined;
+        return getClosetItemId(asset) !== null;
+    });
+
+    const firstSaveableAsset = firstSaveableLayer?.asset as ShopMeta | undefined;
+    const firstSaveableClosetItemId = getClosetItemId(firstSaveableAsset);
 
     const handleChangeX = (v: number) => {
         if (!activeLayer) return;
@@ -135,7 +149,7 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
         });
     };
 
-    const handleSaveToCloset = async () => {
+    const handleSaveSelectedItem = async () => {
         if (!activeLayer) return;
 
         if (!closetItemId) {
@@ -146,10 +160,10 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
             return;
         }
 
-        setIsSavingToCloset(true);
+        setIsSavingSelectedItem(true);
         setPanelNotice({
             tone: "success",
-            text: "Saving to Closet...",
+            text: "Saving selected item to Closet...",
         });
 
         try {
@@ -178,7 +192,7 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
             addXP(15);
             setPanelNotice({
                 tone: "success",
-                text: "♡ Saved to Closet! +15 XP",
+                text: "♡ Selected item saved to Closet! +15 XP",
                 actionHref: "/closet",
                 actionLabel: "View Closet",
             });
@@ -191,7 +205,79 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
                 text: `Closet save failed: ${message}`,
             });
         } finally {
-            setIsSavingToCloset(false);
+            setIsSavingSelectedItem(false);
+        }
+    };
+
+    const handleSaveCurrentLook = async () => {
+        if (layers.length === 0) {
+            setPanelNotice({
+                tone: "error",
+                text: "Add at least one layer before saving a look.",
+            });
+            return;
+        }
+
+        if (!firstSaveableLayer || !firstSaveableClosetItemId) {
+            setPanelNotice({
+                tone: "error",
+                text: "This look needs at least one layer with a numeric closet item ID before it can be saved.",
+            });
+            return;
+        }
+
+        const pieceLabel = getPieceLabel(layers.length);
+        const lookName =
+            layers.length > 1
+                ? `Custom BIRAMY Look · ${pieceLabel}`
+                : `${firstSaveableAsset?.name ?? "Saved Look"} · ${pieceLabel}`;
+
+        setIsSavingCurrentLook(true);
+        setPanelNotice({
+            tone: "success",
+            text: "Saving current look to Closet...",
+        });
+
+        try {
+            const response = await fetch("/api/closet", {
+                method: "POST",
+                cache: "no-store",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    item: firstSaveableClosetItemId,
+                    nickName: lookName,
+                    rating: "5",
+                }),
+            });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok || data?.ok === false) {
+                throw new Error(
+                    data?.error ??
+                    `Look save failed: ${response.status} ${response.statusText}`
+                );
+            }
+
+            addXP(25);
+            setPanelNotice({
+                tone: "success",
+                text: `✦ Current look saved to Closet! ${pieceLabel} · +25 XP`,
+                actionHref: "/closet",
+                actionLabel: "View Closet",
+            });
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "Look save failed.";
+
+            setPanelNotice({
+                tone: "error",
+                text: `Look save failed: ${message}`,
+            });
+        } finally {
+            setIsSavingCurrentLook(false);
         }
     };
 
@@ -201,34 +287,55 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
         Boolean(activeAsset?.price) ||
         Boolean(activeAsset?.shopUrl);
 
+    const isSaving = isSavingSelectedItem || isSavingCurrentLook;
+
     const noticeClasses =
         panelNotice?.tone === "error"
             ? "border-rose-400/40 bg-rose-500/10 text-rose-200"
             : panelNotice?.tone === "xp"
                 ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
-                : "border-sky-400/30 bg-sky-500/10 text-sky-200";
+                : "border-amber-100/30 bg-amber-100/10 text-amber-100";
 
     const noticeActionClasses =
         panelNotice?.tone === "error"
             ? "border-rose-300/40 bg-rose-300/10 text-rose-100 hover:bg-rose-300/20"
             : panelNotice?.tone === "xp"
                 ? "border-emerald-300/40 bg-emerald-300/10 text-emerald-100 hover:bg-emerald-300/20"
-                : "border-sky-300/40 bg-sky-300/10 text-sky-100 hover:bg-sky-300/20";
+                : "border-amber-100/40 bg-amber-100/10 text-amber-100 hover:bg-amber-100/20";
 
     return (
-        <aside className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 space-y-6">
+        <aside className="space-y-6 rounded-2xl border border-white/10 bg-slate-900/80 p-4 shadow-xl shadow-black/20">
+            <section className="rounded-2xl border border-amber-100/20 bg-white/[0.03] p-3">
+                <div className="flex items-center justify-between gap-3">
+                    <div>
+                        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/80">
+                            Walk-In Closet
+                        </div>
+                        <p className="mt-1 text-xs text-slate-400">
+                            View saved items and looks anytime.
+                        </p>
+                    </div>
+
+                    <Link
+                        href="/closet"
+                        className="shrink-0 rounded-xl bg-amber-100 px-3 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-amber-950/20 hover:bg-amber-50"
+                    >
+                        Open Closet
+                    </Link>
+                </div>
+            </section>
             {alerts.length > 0 && (
                 <section className="space-y-2">
                     {alerts.map((alert) => {
                         const toneClasses =
                             alert.tone === "xp"
                                 ? "border-emerald-400/30 bg-emerald-500/10"
-                                : "border-sky-400/30 bg-sky-500/10";
+                                : "border-amber-100/30 bg-amber-100/10";
 
                         const badgeClasses =
                             alert.tone === "xp"
                                 ? "bg-emerald-400/20 text-emerald-200"
-                                : "bg-sky-400/20 text-sky-200";
+                                : "bg-amber-100/20 text-amber-100";
 
                         return (
                             <div
@@ -280,15 +387,15 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
                                 key={layer.id}
                                 type="button"
                                 className={`w-full rounded-xl border px-3 py-2 text-left transition ${isActive
-                                    ? "border-sky-500 bg-sky-500/10"
-                                    : "border-slate-700 bg-slate-900/60 hover:border-slate-500"
+                                    ? "border-amber-100/60 bg-amber-100/10"
+                                    : "border-slate-700 bg-slate-900/60 hover:border-amber-100/40"
                                     }`}
                                 onClick={() => setActiveLayer(layer.id)}
                             >
                                 <div className="flex w-full items-center justify-between">
                                     <span className="truncate text-sm text-slate-50">{name}</span>
                                     {isActive && (
-                                        <span className="ml-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-300">
+                                        <span className="ml-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-100">
                                             Active
                                         </span>
                                     )}
@@ -315,6 +422,7 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
                     </button>
                 </div>
             </section>
+
             <section>
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                     Selected Item
@@ -331,7 +439,7 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
                                 <img
                                     src={activeLayer.asset.thumb}
                                     alt={activeAsset?.name ?? "Selected item"}
-                                    className="h-14 w-14 rounded-xl border border-slate-700 object-contain bg-slate-900"
+                                    className="h-14 w-14 rounded-xl border border-slate-700 bg-slate-900 object-contain"
                                 />
                             )}
 
@@ -412,14 +520,32 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
 
                             <button
                                 type="button"
-                                onClick={handleSaveToCloset}
-                                disabled={isSavingToCloset}
-                                className="w-full rounded-xl border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs font-semibold text-sky-200 hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                onClick={handleSaveSelectedItem}
+                                disabled={isSaving}
+                                className="w-full rounded-xl border border-amber-100/40 bg-amber-100/10 px-3 py-2 text-xs font-semibold text-amber-100 hover:bg-amber-100/20 disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                                {isSavingToCloset
-                                    ? "Saving to Closet..."
-                                    : "♡ Save to Closet · +15 XP"}
+                                {isSavingSelectedItem
+                                    ? "Saving selected item..."
+                                    : "♡ Save Selected Item · +15 XP"}
                             </button>
+
+                            <button
+                                type="button"
+                                onClick={handleSaveCurrentLook}
+                                disabled={isSaving || layers.length === 0}
+                                className="w-full rounded-xl bg-amber-100 px-3 py-2 text-xs font-semibold text-slate-950 shadow-lg shadow-amber-950/20 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {isSavingCurrentLook
+                                    ? "Saving current look..."
+                                    : `✦ Save Current Look · ${getPieceLabel(layers.length)} · +25 XP`}
+                            </button>
+
+                            <Link
+                                href="/closet"
+                                className="block w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-xs font-semibold text-white hover:border-amber-100/50 hover:bg-white/10"
+                            >
+                                Open Closet
+                            </Link>
                         </div>
                     </div>
                 )}
@@ -540,7 +666,7 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
                         <button
                             type="button"
                             onClick={handleResetLayer}
-                            className="mt-2 w-full rounded-xl bg-sky-600 py-2 text-xs text-white"
+                            className="mt-2 w-full rounded-xl bg-slate-800 py-2 text-xs text-white hover:bg-slate-700"
                         >
                             Reset layer
                         </button>

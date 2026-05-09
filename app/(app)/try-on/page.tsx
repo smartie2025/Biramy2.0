@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import FaceTryOn from "../../components/FaceTryOn";
 import AssetDropdown, { type OverlayItem } from "../../components/AssetDropdown";
@@ -253,40 +254,118 @@ function TryOnPageInner() {
     }, []);
 
     return (
-        <main className="p-4 pb-24">
-            <h1 className="mb-4 text-2xl font-bold">Try On</h1>
+        <main className="min-h-screen bg-slate-950 px-4 py-8 text-white">
+            <div className="mx-auto max-w-7xl">
+                <header className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                        <div className="mb-2 text-xs font-semibold uppercase tracking-[0.35em] text-amber-100">
+                            BIRAMY Studio
+                        </div>
 
-            <div className="mb-2 text-xs text-slate-500">
-                look param: {searchParams.get("look") ?? "none"}
-            </div>
+                        <h1 className="font-serif text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                            Try-On Studio
+                        </h1>
 
-            <div className="mb-4">
-                <CategoryTabs
-                    value={category}
-                    onChange={(nextCategory) => {
-                        setCategory(nextCategory);
-                        setStoreCategory(nextCategory);
-                    }}
-                />
-            </div>
+                        <p className="mt-2 font-serif text-lg italic text-amber-100/90">
+                            Layer pieces. Build the look. Save your style.
+                        </p>
 
-            <div className="mb-4">
-                <AssetDropdown category={category} onSelectAction={setSelected} />
-            </div>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+                            Select accessories, adjust each layer, and open your walk-in
+                            Closet whenever you want to review saved styles.
+                        </p>
+                    </div>
 
-            <div className="mt-4 grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-                <div className="space-y-6">
-                    <FaceTryOn selectedOverlay={selected} />
+                    <div className="flex flex-wrap gap-3">
+                        <Link
+                            href="/"
+                            className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 transition hover:border-amber-100/50 hover:bg-white/10"
+                        >
+                            Home
+                        </Link>
 
-                    <button
-                        type="button"
-                        className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-4 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:scale-[1.01] hover:from-emerald-500 hover:to-teal-400 hover:shadow-xl"
-                    >
-                        ✨ Shop This Look
-                    </button>
+                        <Link
+                            href="/closet"
+                            className="rounded-2xl bg-amber-100 px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-amber-950/20 transition hover:bg-amber-50"
+                        >
+                            Open Closet
+                        </Link>
+                    </div>
+                </header>
+
+                {searchParams.get("look") && (
+                    <section className="mb-6 rounded-[1.75rem] border border-amber-100/20 bg-amber-100/10 p-4 shadow-xl shadow-black/20">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-100">
+                                    Editorial Look Activated
+                                </div>
+                                <p className="mt-1 text-sm text-slate-200">
+                                    {LOOK_OF_THE_DAY.title} is ready to layer and style.
+                                </p>
+                            </div>
+
+                            <div className="rounded-full border border-amber-100/30 bg-slate-950/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-100">
+                                +{LOOK_OF_THE_DAY.rewardXp} XP
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                <section className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-xl shadow-black/20">
+                    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+                                Choose Category
+                            </h2>
+                            <p className="mt-1 text-sm text-slate-400">
+                                Add glasses, earrings, necklaces, hats, and more to your look.
+                            </p>
+                        </div>
+                    </div>
+
+                    <CategoryTabs
+                        value={category}
+                        onChange={(nextCategory) => {
+                            setCategory(nextCategory);
+                            setStoreCategory(nextCategory);
+                        }}
+                    />
+
+                    <div className="mt-5">
+                        <AssetDropdown category={category} onSelectAction={setSelected} />
+                    </div>
+                </section>
+
+                <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+                    <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-xl shadow-black/20">
+                        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 className="font-serif text-2xl font-semibold text-white">
+                                    AR Mirror
+                                </h2>
+                                <p className="mt-1 text-sm text-slate-400">
+                                    Start the camera, then refine your layered look.
+                                </p>
+                            </div>
+
+                            <div className="rounded-full border border-amber-100/20 bg-slate-950/50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-100">
+                                Live Studio
+                            </div>
+                        </div>
+
+                        <FaceTryOn selectedOverlay={selected} />
+
+                        <button
+                            type="button"
+                            className="mt-6 w-full rounded-2xl border border-amber-100/30 bg-white/5 px-4 py-3 text-sm font-semibold text-amber-100 shadow-lg shadow-black/20 transition hover:border-amber-100/60 hover:bg-white/10"
+                        >
+                            ✨ Shop This Look
+                        </button>
+                    </section>
+
+                    <TryOnPanel alerts={alerts} />
                 </div>
-
-                <TryOnPanel alerts={alerts} />
             </div>
         </main>
     );
@@ -296,9 +375,9 @@ export default function Page() {
     return (
         <Suspense
             fallback={
-                <main className="p-4 pb-24">
+                <main className="min-h-screen bg-slate-950 p-4 pb-24 text-white">
                     <h1 className="mb-4 text-2xl font-bold">Try On</h1>
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-300">
                         Loading try-on experience…
                     </div>
                 </main>
