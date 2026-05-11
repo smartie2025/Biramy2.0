@@ -420,12 +420,12 @@ export default function ClosetPage() {
                                                         Style Again
                                                     </Link>
 
-                                                    <button
-                                                        type="button"
-                                                        className="rounded-2xl bg-amber-200 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-100"
+                                                    <Link
+                                                        href="/closet/look"
+                                                        className="rounded-2xl bg-amber-100 px-4 py-3 text-center text-sm font-semibold text-slate-950 transition hover:bg-amber-50"
                                                     >
                                                         View Look
-                                                    </button>
+                                                    </Link>
                                                 </div>
                                             </div>
                                         </article>
