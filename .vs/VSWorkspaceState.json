@@ -2,12 +2,14 @@
   "ExpandedNodes": [
     "",
     "\\app",
-    "\\app\\(app)\\try-on",
     "\\app\\(site)",
     "\\app\\(site)\\closet",
+    "\\app\\api",
+    "\\app\\api\\closet",
     "\\app\\closet",
-    "\\app\\closet\\look"
+    "\\app\\closet\\look",
+    "\\app\\components"
   ],
-  "SelectedNode": "\\app\\(site)\\closet",
+  "SelectedNode": "\\app\\(site)\\closet\\page.tsx",
   "PreviewInSolutionExplorer": false
 }

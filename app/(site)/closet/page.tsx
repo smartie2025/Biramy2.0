@@ -5,17 +5,21 @@ import Link from "next/link";
 
 type ClosetRecord = {
     id?: string | number;
+    closetItemId?: string | number;
     item?: string | number;
     itemId?: string | number;
     nickName?: string;
     nickname?: string;
     name?: string;
     category?: string;
+    categoryID?: string | number;
+    categoryName?: string;
     type?: string;
     itemType?: string;
     productType?: string;
     image?: string;
     imageUrl?: string;
+    url?: string;
     src?: string;
     thumb?: string;
     thumbnail?: string;
@@ -43,6 +47,14 @@ function normaliseClosetList(value: unknown): ClosetRecord[] {
     if (
         value &&
         typeof value === "object" &&
+        Array.isArray((value as { closet?: unknown }).closet)
+    ) {
+        return (value as { closet: ClosetRecord[] }).closet;
+    }
+
+    if (
+        value &&
+        typeof value === "object" &&
         Array.isArray((value as { items?: unknown }).items)
     ) {
         return (value as { items: ClosetRecord[] }).items;
@@ -64,7 +76,29 @@ function normaliseClosetList(value: unknown): ClosetRecord[] {
         return (value as { results: ClosetRecord[] }).results;
     }
 
+    if (
+        value &&
+        typeof value === "object" &&
+        Array.isArray((value as { data?: unknown }).data)
+    ) {
+        return (value as { data: ClosetRecord[] }).data;
+    }
+
     return [];
+}
+
+function pickText(...values: unknown[]) {
+    for (const value of values) {
+        if (typeof value === "string" && value.trim()) {
+            return value.trim();
+        }
+
+        if (typeof value === "number" && Number.isFinite(value)) {
+            return String(value);
+        }
+    }
+
+    return null;
 }
 
 function formatDate(value?: string) {
@@ -72,6 +106,9 @@ function formatDate(value?: string) {
 
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
+
+    // Backend default date guard, e.g. 0001-01-01T00:00:00
+    if (date.getFullYear() < 1900) return "Saved recently";
 
     return new Intl.DateTimeFormat(undefined, {
         year: "numeric",
@@ -82,47 +119,41 @@ function formatDate(value?: string) {
 
 function getDisplayName(item: ClosetRecord) {
     return (
-        item.nickName ??
-        item.nickname ??
-        item.name ??
-        //`Closet item ${item.item ?? item.itemId ?? item.id ?? ""}`.trim()
-        "Garden Party Elegance"
+        pickText(item.nickName, item.nickname, item.name) ??
+        `Closet item ${getItemNumber(item)}`
     );
 }
 
 function getItemNumber(item: ClosetRecord) {
-    return item.item ?? item.itemId ?? item.id ?? "—";
+    return item.closetItemId ?? item.item ?? item.itemId ?? item.id ?? "—";
 }
 
 function getItemCategory(item: ClosetRecord) {
-    const raw =
-        item.category ??
-        item.type ??
-        item.itemType ??
-        item.productType ??
-        "Saved Look";
-
-    return String(raw);
+    return (
+        pickText(
+            item.categoryName,
+            item.category,
+            item.type,
+            item.itemType,
+            item.productType
+        ) ?? "Saved Item"
+    );
 }
 
 function getItemImage(item: ClosetRecord) {
-    const image =
-        item.image ??
-        item.imageUrl ??
-        item.src ??
-        item.thumb ??
-        item.thumbnail;
+    const image = pickText(
+        item.image,
+        item.imageUrl,
+        item.url,
+        item.src,
+        item.thumb,
+        item.thumbnail
+    );
 
-    if (typeof image === "string" && image.length > 0) {
+    if (image) {
         return image;
     }
 
-    /*
-      Kommander note:
-      This fallback should point to the Look of the Day image already working in Hero.
-      Since you renamed the file tactically, this path may already be correct if it matches
-      your current public image path.
-    */
     return "/images/look-of-day-editorial.jpg";
 }
 
@@ -135,6 +166,25 @@ function getFilterCategory(category: string) {
     if (lower.includes("necklace") || lower.includes("pendant")) return "Necklaces";
 
     return "Other";
+}
+
+function getStyleType(category: string) {
+    const filterCategory = getFilterCategory(category);
+
+    if (filterCategory === "Looks") return "Editorial Look";
+    if (filterCategory === "Other") return "Saved Piece";
+
+    return filterCategory.slice(0, -1);
+}
+
+function getMoodLabel(item: ClosetRecord) {
+    const rating = pickText(item.rating);
+
+    if (rating) {
+        return `Rating ${rating}`;
+    }
+
+    return `Item ${getItemNumber(item)}`;
 }
 
 export default function ClosetPage() {
@@ -357,10 +407,12 @@ export default function ClosetPage() {
                                     const savedDate = formatDate(
                                         item.purchaseDate ?? item.createdAt ?? item.dateCreated
                                     );
+                                    const styleType = getStyleType(category);
+                                    const moodLabel = getMoodLabel(item);
 
                                     return (
                                         <article
-                                            key={`${item.id ?? item.item ?? item.itemId ?? index}-${index}`}
+                                            key={`${item.id ?? item.closetItemId ?? item.item ?? item.itemId ?? index}-${index}`}
                                             className="group overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/80 shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-amber-200/40"
                                         >
                                             <div className="relative aspect-[4/3] overflow-hidden bg-slate-950">
@@ -400,14 +452,14 @@ export default function ClosetPage() {
                                                     <div className="flex justify-between gap-3">
                                                         <span className="text-white/45">Style Type</span>
                                                         <span className="font-semibold text-white">
-                                                            Editorial Look
+                                                            {styleType}
                                                         </span>
                                                     </div>
 
                                                     <div className="flex justify-between gap-3">
-                                                        <span className="text-white/45">Mood</span>
+                                                        <span className="text-white/45">Closet Ref</span>
                                                         <span className="font-semibold text-amber-100">
-                                                            Champagne Garden
+                                                            {moodLabel}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -424,7 +476,7 @@ export default function ClosetPage() {
                                                         href="/closet/look"
                                                         className="rounded-2xl bg-amber-100 px-4 py-3 text-center text-sm font-semibold text-slate-950 transition hover:bg-amber-50"
                                                     >
-                                                        View Look
+                                                        View
                                                     </Link>
                                                 </div>
                                             </div>

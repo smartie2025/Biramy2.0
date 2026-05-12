@@ -166,14 +166,17 @@ async function getAuthHeaders() {
 export async function GET() {
     try {
         const closetUrl = requireEnv(CLOSET_API_URL, "BIRAMY_CLOSET_API_URL");
-
-        const response = await fetchWithTimeout("Closet GET", closetUrl, {
+        const closetGetUrl = `${closetUrl.replace(/\/$/, "")}/1`;
+        const response = await fetchWithTimeout("Closet GET", closetGetUrl, {
+        //const response = await fetchWithTimeout("Closet GET", closetUrl, {
             method: "GET",
             cache: "no-store",
             headers: await getAuthHeaders(),
         });
 
         const text = await response.text();
+        //console.log("BIRAMY Closet GET status:", response.status, response.statusText);
+        //console.log("BIRAMY Closet GET response:", text);
 
         if (!response.ok) {
             return NextResponse.json(
@@ -241,6 +244,16 @@ export async function POST(req: NextRequest) {
             rating: body.rating ?? "5",
         };
 
+        //const response = await fetchWithTimeout("Closet POST", closetUrl, {
+        //    method: "POST",
+        //    cache: "no-store",
+        //    headers: await getAuthHeaders(),
+        //    body: JSON.stringify(payload),
+        //});
+
+        //const text = await response.text();
+        console.log("BIRAMY Closet POST payload:", payload);
+
         const response = await fetchWithTimeout("Closet POST", closetUrl, {
             method: "POST",
             cache: "no-store",
@@ -249,6 +262,9 @@ export async function POST(req: NextRequest) {
         });
 
         const text = await response.text();
+
+        console.log("BIRAMY Closet POST status:", response.status, response.statusText);
+        console.log("BIRAMY Closet POST response:", text);
 
         if (!response.ok) {
             return NextResponse.json(
