@@ -181,12 +181,31 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
             });
 
             const data = await response.json().catch(() => null);
+            if (response.status === 401) {
+                setPanelNotice({
+                    tone: "error",
+                    text: "Login or create a Galaxy Pass to save this item to your Closet.",
+                    actionHref: "/login",
+                    actionLabel: "Login",
+                });
+                return;
+            }
 
             if (!response.ok || data?.ok === false) {
                 throw new Error(
                     data?.error ??
                     `Closet save failed: ${response.status} ${response.statusText}`
                 );
+            }
+
+            if (data?.duplicate) {
+                setPanelNotice({
+                    tone: "success",
+                    text: data.message ?? "Already in your Closet — no duplicate saved.",
+                    actionHref: "/closet",
+                    actionLabel: "View Closet",
+                });
+                return;
             }
 
             addXP(15);
@@ -253,12 +272,31 @@ export default function TryOnPanel({ alerts = [] }: TryOnPanelProps) {
             });
 
             const data = await response.json().catch(() => null);
+            if (response.status === 401) {
+                setPanelNotice({
+                    tone: "error",
+                    text: "Login or create a Galaxy Pass to save this look to your Closet.",
+                    actionHref: "/login",
+                    actionLabel: "Login",
+                });
+                return;
+            }
 
             if (!response.ok || data?.ok === false) {
                 throw new Error(
                     data?.error ??
                     `Look save failed: ${response.status} ${response.statusText}`
                 );
+            }
+
+            if (data?.duplicate) {
+                setPanelNotice({
+                    tone: "success",
+                    text: data.message ?? "This item is already in your Closet — no duplicate saved.",
+                    actionHref: "/closet",
+                    actionLabel: "View Closet",
+                });
+                return;
             }
 
             addXP(25);

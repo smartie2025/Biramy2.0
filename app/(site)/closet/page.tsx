@@ -127,7 +127,9 @@ function getDisplayName(item: ClosetRecord) {
 function getItemNumber(item: ClosetRecord) {
     return item.closetItemId ?? item.item ?? item.itemId ?? item.id ?? "—";
 }
-
+function getClosetRecordId(item: ClosetRecord) {
+    return pickText(item.closetItemId, item.id);
+}
 function getItemCategory(item: ClosetRecord) {
     return (
         pickText(
@@ -192,6 +194,7 @@ export default function ClosetPage() {
     const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
     const [error, setError] = useState<string | null>(null);
     const [activeFilter, setActiveFilter] = useState("All");
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const closetCount = items.length;
 
@@ -230,6 +233,47 @@ export default function ClosetPage() {
             setItems([]);
             setStatus("error");
             setError(err instanceof Error ? err.message : "Unknown closet error.");
+        }
+    }
+    async function handleDelete(item: ClosetRecord) {
+        const closetRecordId = getClosetRecordId(item);
+
+        if (!closetRecordId) {
+            setError("This closet item does not have a valid delete id.");
+            return;
+        }
+
+        const name = getDisplayName(item);
+        const confirmed = window.confirm(`Remove "${name}" from your Closet?`);
+
+        if (!confirmed) return;
+
+        try {
+            setDeletingId(closetRecordId);
+
+            const response = await fetch(
+                `/api/closet?closetItemId=${encodeURIComponent(closetRecordId)}`,
+                {
+                    method: "DELETE",
+                    cache: "no-store",
+                }
+            );
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok || data?.ok === false) {
+                throw new Error(data?.error ?? "Delete request failed.");
+            }
+
+            setItems((currentItems) =>
+                currentItems.filter(
+                    (currentItem) => getClosetRecordId(currentItem) !== closetRecordId
+                )
+            );
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Unknown delete error.");
+        } finally {
+            setDeletingId(null);
         }
     }
 
@@ -409,6 +453,7 @@ export default function ClosetPage() {
                                     );
                                     const styleType = getStyleType(category);
                                     const moodLabel = getMoodLabel(item);
+                                    const closetRecordId = getClosetRecordId(item);
 
                                     return (
                                         <article
@@ -478,6 +523,15 @@ export default function ClosetPage() {
                                                     >
                                                         View
                                                     </Link>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDelete(item)}
+                                                        disabled={!closetRecordId || deletingId === closetRecordId}
+                                                        className="col-span-2 rounded-2xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-center text-sm font-semibold text-rose-100 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        {deletingId === closetRecordId ? "Removing..." : "Delete from Closet"}
+                                                    </button>
                                                 </div>
                                             </div>
                                         </article>
