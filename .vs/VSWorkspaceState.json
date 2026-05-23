@@ -2,15 +2,15 @@
   "ExpandedNodes": [
     "",
     "\\app",
-    "\\app\\(app)\\try-on",
-    "\\app\\(site)\\signup",
+    "\\app\\(app)",
+    "\\app\\(site)",
+    "\\app\\(site)\\login",
+    "\\app\\api",
     "\\app\\api\\auth",
-    "\\app\\api\\auth\\signup",
-    "\\app\\api\\closet",
-    "\\app\\api\\tryon-assets",
-    "\\app\\closet\\look",
+    "\\app\\api\\auth\\login",
+    "\\app\\closet",
     "\\app\\components"
   ],
-  "SelectedNode": "\\app\\components\\TryOnPanel.tsx",
+  "SelectedNode": "\\components\\marketing\\Hero.tsx",
   "PreviewInSolutionExplorer": false
 }

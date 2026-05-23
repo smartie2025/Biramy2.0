@@ -58,7 +58,7 @@ export default function AuthNav() {
                 username: null,
             });
 
-            router.push("/login");
+            router.push("/");
             router.refresh();
         } finally {
             setLoggingOut(false);
@@ -79,15 +79,25 @@ export default function AuthNav() {
 
     if (!session.loggedIn) {
         return (
-            <Link
-                href="/login"
-                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold uppercase tracking-[0.08em] text-slate-800 shadow-sm transition hover:bg-slate-100"
-            >
-                LOGIN
-            </Link>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+                <div className="hidden max-w-[360px] rounded-2xl border border-slate-200 bg-white/80 px-4 py-2 text-xs leading-5 text-slate-700 shadow-sm lg:block">
+                    <span className="block font-bold uppercase tracking-[0.08em] text-slate-900">
+                        Step into the Galaxy, Explorer 💫
+                    </span>
+                    <span className="text-slate-600">
+                        Explore, try on, and discover your style. Create a Galaxy Pass to save your favourites.
+                    </span>
+                </div>
+
+                <Link
+                    href="/login"
+                    className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-bold uppercase tracking-[0.08em] text-slate-800 shadow-sm transition hover:bg-slate-100"
+                >
+                    LOGIN
+                </Link>
+            </div>
         );
     }
-
     return (
         <div className="flex flex-wrap items-center gap-2">
             <div className="hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 lg:block">
