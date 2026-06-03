@@ -2,15 +2,14 @@
   "ExpandedNodes": [
     "",
     "\\app",
-    "\\app\\(app)",
     "\\app\\(site)",
     "\\app\\(site)\\login",
     "\\app\\api",
     "\\app\\api\\auth",
     "\\app\\api\\auth\\login",
+    "\\app\\api\\closet",
     "\\app\\closet",
     "\\app\\components"
   ],
-  "SelectedNode": "\\components\\marketing\\Hero.tsx",
   "PreviewInSolutionExplorer": false
 }
