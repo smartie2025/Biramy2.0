@@ -18,6 +18,18 @@ export default function Footer() {
                         ✧
                     </span>
 
+                    <Link href="/privacy" className="hover:text-slate-900">
+                        Privacy Policy
+                    </Link>
+
+                    <span aria-hidden="true" className="text-slate-300">
+                        ✧
+                    </span>
+
+                    <Link href="/terms" className="hover:text-slate-900">
+                        Terms of Use
+                    </Link>
+
                     <span className="text-slate-400">
                         AR previews are approximate. Product details and availability may vary.
                     </span>

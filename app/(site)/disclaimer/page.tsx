@@ -24,7 +24,7 @@ export default function DisclaimerPage() {
                     </h1>
 
                     <p className="mt-4 text-sm text-slate-300">
-                        Last updated: June 3, 2026
+                        Last updated: June 4, 2026
                     </p>
 
                     <div className="mt-8 space-y-8 text-slate-200 leading-7">
@@ -59,10 +59,10 @@ export default function DisclaimerPage() {
                             </h2>
                             <p className="mt-3">
                                 Product information, including prices, availability, sizing,
-                                colours, materials, images, retailer information, and delivery
-                                or return details, may change. Users should always confirm final
-                                product information directly with the retailer before making a
-                                purchase.
+                                colours, materials, images, retailer information, delivery
+                                details, return details, and product descriptions may change.
+                                Users should always confirm final product information directly
+                                with the retailer before making a purchase.
                             </p>
                         </section>
 
@@ -74,24 +74,14 @@ export default function DisclaimerPage() {
                                 Any purchase made through BIRAMY Galaxy, through links displayed
                                 on BIRAMY Galaxy, or after using BIRAMY Galaxy is a transaction
                                 between the user and the relevant retailer, seller, brand, or
-                                third-party provider. BIRAMY Galaxy does not control retailer
-                                pricing, inventory, product availability, shipping, delivery,
-                                returns, refunds, warranties, customer service, product quality,
-                                or fulfilment. Users should review the retailer&apos;s own terms,
-                                policies, and product information before making a purchase.
+                                third-party provider.
                             </p>
-                        </section>
-
-                        <section>
-                            <h2 className="text-xl font-semibold text-white">
-                                Third-Party Links and Retailers
-                            </h2>
                             <p className="mt-3">
-                                BIRAMY Galaxy may display or link to third-party products,
-                                services, websites, retailers, images, or information. We are
-                                not responsible for third-party websites, product quality,
-                                delivery, pricing, returns, availability, or purchasing
-                                decisions.
+                                BIRAMY Galaxy does not control retailer pricing, inventory,
+                                product availability, shipping, delivery, returns, refunds,
+                                warranties, customer service, product quality, or fulfilment.
+                                Users should review the retailer&apos;s own terms, policies, and
+                                product information before making a purchase.
                             </p>
                         </section>
 
@@ -142,6 +132,10 @@ export default function DisclaimerPage() {
                                 save, upload, or share captured images, saved looks, or closet
                                 items when they choose to do so.
                             </p>
+                            <p className="mt-3">
+                                For more information about image handling, storage, sharing, analytics,
+                                and user rights, please review the BIRAMY Galaxy Privacy Policy.
+                            </p>
                         </section>
 
                         <section>
@@ -159,11 +153,36 @@ export default function DisclaimerPage() {
 
                         <section>
                             <h2 className="text-xl font-semibold text-white">
-                                User Understanding
+                                Related Policies
                             </h2>
                             <p className="mt-3">
-                                By using BIRAMY Galaxy, users understand that AR previews are
-                                approximate and that real-world results may vary.
+                                Users should also review our{" "}
+                                <Link
+                                    href="/privacy"
+                                    className="text-cyan-300 hover:text-cyan-200"
+                                >
+                                    Privacy Policy
+                                </Link>{" "}
+                                and{" "}
+                                <Link
+                                    href="/terms"
+                                    className="text-cyan-300 hover:text-cyan-200"
+                                >
+                                    Terms of Use
+                                </Link>
+                                .
+                            </p>
+                        </section>
+
+                        <section>
+                            <h2 className="text-xl font-semibold text-white">
+                                User Acknowledgement
+                            </h2>
+                            <p className="mt-3">
+                                By using BIRAMY Galaxy, users acknowledge that AR previews are
+                                approximate, that real-world results may vary, and that product
+                                purchases are handled by the relevant retailer, seller, brand, or
+                                third-party provider.
                             </p>
                         </section>
                     </div>
