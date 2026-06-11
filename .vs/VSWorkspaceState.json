@@ -3,13 +3,11 @@
     "",
     "\\app",
     "\\app\\(site)",
-    "\\app\\(site)\\login",
-    "\\app\\api",
-    "\\app\\api\\auth",
-    "\\app\\api\\auth\\login",
-    "\\app\\api\\closet",
-    "\\app\\closet",
-    "\\app\\components"
+    "\\app\\(site)\\disclaimer",
+    "\\app\\(site)\\privacy",
+    "\\app\\(site)\\terms",
+    "\\components",
+    "\\components\\marketing"
   ],
   "PreviewInSolutionExplorer": false
 }

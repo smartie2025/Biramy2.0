@@ -1,5 +1,5 @@
 "use client";
-
+import { LookOfTheDayCard } from "../../components/LookOfTheDayCard";
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -311,7 +311,7 @@ function TryOnPageInner() {
                         </div>
                     </section>
                 )}
-
+                <LookOfTheDayCard />
                 <section className="mb-6 rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-xl shadow-black/20">
                     <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
