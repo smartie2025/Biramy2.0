@@ -356,6 +356,42 @@ function TryOnPageInner() {
 
                         <FaceTryOn selectedOverlay={selected} />
 
+                        {/* AR preview and purchase disclaimer */}
+                        <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-xs leading-5 text-slate-300">
+                            <p>
+                                AR previews are approximate and may not perfectly represent real-world
+                                size, fit, colour, texture, lighting, placement, movement, or comfort.
+                                Always confirm final product information directly with the retailer
+                                before making a purchase.
+                            </p>
+
+                            <p className="mt-2">
+                                By using the Try-On Studio, you acknowledge that real-world results may
+                                vary. Review our{" "}
+                                <Link
+                                    href="/disclaimer"
+                                    className="font-semibold text-amber-100 underline decoration-amber-100/40 underline-offset-4 hover:text-amber-50"
+                                >
+                                    Disclaimer
+                                </Link>
+                                ,{" "}
+                                <Link
+                                    href="/privacy"
+                                    className="font-semibold text-amber-100 underline decoration-amber-100/40 underline-offset-4 hover:text-amber-50"
+                                >
+                                    Privacy Policy
+                                </Link>
+                                , and{" "}
+                                <Link
+                                    href="/terms"
+                                    className="font-semibold text-amber-100 underline decoration-amber-100/40 underline-offset-4 hover:text-amber-50"
+                                >
+                                    Terms of Use
+                                </Link>
+                                .
+                            </p>
+                        </div>
+
                         <button
                             type="button"
                             className="mt-6 w-full rounded-2xl border border-amber-100/30 bg-white/5 px-4 py-3 text-sm font-semibold text-amber-100 shadow-lg shadow-black/20 transition hover:border-amber-100/60 hover:bg-white/10"

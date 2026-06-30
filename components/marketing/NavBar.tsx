@@ -24,10 +24,7 @@ export default function NavBar() {
                     </Link>
                     <Link href="/#collections" className="hover:text-slate-900">
                         COLLECTIONS
-                    </Link>
-                    <Link href="/try-on" className="font-semibold hover:text-slate-900">
-                        TRY ON
-                    </Link>
+                    </Link>                    
                 </nav>
 
                 <div className="flex items-center gap-3">

@@ -2,12 +2,13 @@
   "ExpandedNodes": [
     "",
     "\\app",
+    "\\app\\(app)",
+    "\\app\\(app)\\try-on",
     "\\app\\(site)",
-    "\\app\\(site)\\disclaimer",
-    "\\app\\(site)\\privacy",
-    "\\app\\(site)\\terms",
+    "\\app\\components",
     "\\components",
-    "\\components\\marketing"
+    "\\public"
   ],
+  "SelectedNode": "\\app\\(site)\\closet",
   "PreviewInSolutionExplorer": false
 }

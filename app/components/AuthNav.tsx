@@ -82,10 +82,10 @@ export default function AuthNav() {
             <div className="flex flex-wrap items-center justify-end gap-2">
                 <div className="hidden max-w-[360px] rounded-2xl border border-slate-200 bg-white/80 px-4 py-2 text-xs leading-5 text-slate-700 shadow-sm lg:block">
                     <span className="block font-bold uppercase tracking-[0.08em] text-slate-900">
-                        Step into the Galaxy, Explorer 💫
+                        Create a BIRAMY Account 💫
                     </span>
                     <span className="text-slate-600">
-                        Explore, try on, and discover your style. Create a Galaxy Pass to save your favourites.
+                        Step into your Style Atelier and save your Favourites
                     </span>
                 </div>
 

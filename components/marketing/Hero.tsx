@@ -35,7 +35,7 @@ export default function Hero() {
                     </h1>
 
                     <p className="mt-6 max-w-xl text-[15px] leading-7 text-slate-600">
-                        Experience high-end jewellery and accessories in augmented reality.
+                        Experience high-end jewellery and accessories in Augmented Reality.
                         Layer multiple pieces, view yourself in editorial-style layouts, and
                         discover your perfect look before you buy.
                     </p>
@@ -55,11 +55,13 @@ export default function Hero() {
                         </Link>
                     </div>
 
-                    <div className="mt-10 flex gap-10 text-slate-600">
+                    {/* TODO: Restore statistics when verified BIRAMY usage data is available. */}
+                    {/*
+                        <div className="mt-10 flex gap-10 text-slate-600">
                         <Stat value="500K+" label="ACTIVE USERS" />
                         <Stat value="10K+" label="LUXURY PIECES" />
                         <Stat value="4.9★" label="APP RATING" />
-                    </div>
+                    </div>*/}
                 </div>
 
                 {/* RIGHT: device mock */}
