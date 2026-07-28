@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=18.18 <21"
+    "node": ">=22 <23"
   },
   "scripts": {
     "dev": "next dev --turbo",
@@ -35,5 +35,9 @@
     "tailwindcss": "^4.1.16",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"
+  },
+  "volta": {
+    "node": "22.23.1",
+    "npm": "10.9.8"
   }
 }
