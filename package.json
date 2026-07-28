@@ -12,6 +12,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
     "@mediapipe/tasks-vision": "^0.10.32",
     "lucide-react": "^0.542.0",
     "mssql": "^12.2.0",
@@ -22,6 +24,7 @@
     "zustand": "^4.5.7"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.2",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.16",
     "@types/mssql": "^9.1.9",
