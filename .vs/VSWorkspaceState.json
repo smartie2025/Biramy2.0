@@ -2,13 +2,15 @@
   "ExpandedNodes": [
     "",
     "\\app",
-    "\\app\\(app)",
-    "\\app\\(app)\\try-on",
     "\\app\\(site)",
+    "\\app\\(site)\\closet",
+    "\\app\\(site)\\disclaimer",
+    "\\app\\(site)\\login",
     "\\app\\components",
     "\\components",
+    "\\components\\marketing",
     "\\public"
   ],
-  "SelectedNode": "\\app\\(site)\\closet",
+  "SelectedNode": "\\components\\marketing\\Footer.tsx",
   "PreviewInSolutionExplorer": false
 }
