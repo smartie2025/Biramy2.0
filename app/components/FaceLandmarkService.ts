@@ -6,6 +6,8 @@ export interface FaceLandmarks {
     noseBridge: NormalizedLandmark;
     leftEar: NormalizedLandmark;
     rightEar: NormalizedLandmark;
+    chin: NormalizedLandmark;
+    foreheadTop: NormalizedLandmark;
     faceCenter: NormalizedLandmark;
     faceWidth: number;
     faceHeight: number;
@@ -174,14 +176,18 @@ export const detectFaceLandmarks = (
         const noseBridge = allLandmarks[6];
         const leftEar = allLandmarks[234];
         const rightEar = allLandmarks[454];
+        const chin = allLandmarks[152];
+        const foreheadTop = allLandmarks[10];
 
         if (
-            leftEye.length === 0 ||
-            rightEye.length === 0 ||
-            !noseBridge ||
-            !leftEar ||
-            !rightEar
-        ) {
+        leftEye.length === 0 ||
+        rightEye.length === 0 ||
+        !noseBridge ||
+        !leftEar ||
+        !rightEar ||
+        !chin ||
+        !foreheadTop
+    ) {
             return { landmarks: null, faceDetected: false };
         }
 
@@ -227,6 +233,8 @@ export const detectFaceLandmarks = (
             noseBridge,
             leftEar,
             rightEar,
+            chin,
+            foreheadTop,
             faceCenter,
             faceWidth,
             faceHeight,
@@ -297,6 +305,42 @@ export const getEarringPosition = (
         x: earX,
         y: earY,
         scale: earringScale,
+        rotation: 0,
+    };
+};
+export const getNecklacePosition = (
+    landmarks: FaceLandmarks,
+    canvasWidth: number,
+    canvasHeight: number
+) => {
+    const chinX = landmarks.chin.x * canvasWidth;
+    const chinY = landmarks.chin.y * canvasHeight;
+
+    const faceHeightPx = landmarks.faceHeight * canvasHeight;
+    const faceWidthPx = landmarks.faceWidth * canvasWidth;
+
+    return {
+        x: chinX,
+        y: chinY + faceHeightPx * 0.45,
+        scale: faceWidthPx * 1.35,
+        rotation: 0,
+    };
+};
+export const getHatPosition = (
+    landmarks: FaceLandmarks,
+    canvasWidth: number,
+    canvasHeight: number
+) => {
+    const foreheadX = landmarks.foreheadTop.x * canvasWidth;
+    const foreheadY = landmarks.foreheadTop.y * canvasHeight;
+
+    const faceHeightPx = landmarks.faceHeight * canvasHeight;
+    const faceWidthPx = landmarks.faceWidth * canvasWidth;
+
+    return {
+        x: foreheadX,
+        y: foreheadY - faceHeightPx * 0.45,
+        scale: faceWidthPx * 3.25,
         rotation: 0,
     };
 };
