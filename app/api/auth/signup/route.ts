@@ -85,10 +85,19 @@ export async function POST(req: Request) {
             message: "Galaxy Pass created.",
             user: data,
         });
+        
     } catch (error: unknown) {
-        const message =
-            error instanceof Error ? error.message : "Unknown signup error.";
+    console.error("BIRAMY signup error:", error);
 
+    if (error instanceof Error && "cause" in error) {
+        console.error(
+            "BIRAMY signup cause:",
+            (error as Error & { cause?: unknown }).cause
+        );
+    }
+
+    const message =
+        error instanceof Error ? error.message : "Unknown signup error.";
         return NextResponse.json(
             {
                 ok: false,
