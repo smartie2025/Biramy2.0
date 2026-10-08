@@ -201,7 +201,7 @@ async function fetchClosetRecords(
     token: string,
     userId?: number
 ): Promise<ClosetRecord[]> {
-    const closetGetUrl = buildClosetGetUrl(closetUrl, userId);
+    const closetGetUrl = closetUrl;
 
     const response = await fetchWithTimeout("Closet duplicate check", closetGetUrl, {
         method: "GET",
@@ -227,7 +227,8 @@ export async function GET(req: NextRequest) {
 
         const closetUrl = requireEnv(CLOSET_API_URL, "BIRAMY_CLOSET_API_URL");
         const userId = getUserIdFromToken(token);
-        const closetGetUrl = buildClosetGetUrl(closetUrl, userId);
+        //const closetGetUrl = buildClosetGetUrl(closetUrl, userId);
+        const closetGetUrl = closetUrl;
 
         const response = await fetchWithTimeout("Closet GET", closetGetUrl, {
             method: "GET",
