@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import FaceTryOn from "../../components/FaceTryOn";
+import GalaxyARControls from "../../components/GalaxyARControls";
 import AssetDropdown, { type OverlayItem } from "../../components/AssetDropdown";
 import CategoryTabs, { type Category } from "../../components/CategoryTabs";
 import type { PanelAlert } from "../../components/TryOnPanel";
@@ -355,6 +356,7 @@ function TryOnPageInner() {
                         </div>
 
                         <FaceTryOn selectedOverlay={selected} />
+                        <GalaxyARControls />
 
                         {/* AR preview and purchase disclaimer */}
                         <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-xs leading-5 text-slate-300">
