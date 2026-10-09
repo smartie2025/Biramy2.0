@@ -518,7 +518,11 @@ export default function ClosetPage() {
                                                     </Link>
 
                                                     <Link
-                                                        href="/closet/look"
+                                                        href={
+                                                        closetRecordId
+                                                            ? `/closet/item/${encodeURIComponent(closetRecordId)}`
+                                                            : "/closet"
+                                                        }
                                                         className="rounded-2xl bg-amber-100 px-4 py-3 text-center text-sm font-semibold text-slate-950 transition hover:bg-amber-50"
                                                     >
                                                         View
